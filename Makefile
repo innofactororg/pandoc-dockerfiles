@@ -157,7 +157,7 @@ extra: $(STACK)/$(stack_freeze_file)
 		-s "$(STACK)" \
 		-c "$(PANDOC_COMMIT)" \
 		-d "$(makefile_dir)" \
-		-t "$(STACK)-pandoc-extra" \
+		-t "$(STACK)-extra" \
 		$(docker_cpu_options)
 # Test ##################################################################
 .PHONY: test-core test-extra test-latex test-minimal
@@ -216,7 +216,7 @@ push-extra:
 		-s "$(STACK)" \
 		-c "$(PANDOC_COMMIT)" \
 		-d "$(makefile_dir)" \
-		-t "$(STACK)-pandoc-extra"
+		-t "$(STACK)-extra"
 
 .PHONY: docs docs-minimal
 docs:
