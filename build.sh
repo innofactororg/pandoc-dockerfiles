@@ -167,9 +167,9 @@ is_default_stack_for_repo ()
 image_name ()
 {
     if [ -z "$2" ]; then
-        printf 'pandoc/%s:%s' "$repo" "${1:-edge}"
+        printf 'reijoh/%s:%s' "$repo" "${1:-edge}"
     else
-        printf 'pandoc/%s:%s-%s' "$repo" "${1:-edge}" "$2"
+        printf 'reijoh/%s:%s-%s' "$repo" "${1:-edge}" "$2"
     fi
 }
 
