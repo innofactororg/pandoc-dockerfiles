@@ -188,7 +188,7 @@ EXTRA_CMD = docker run --rm \
 	--fail-if-warnings
 
 .PHONY: test-extra
-test-extra: output/eisvogel.pdf output/beamertheme-metropolis.pdf
+test-extra: output/eisvogel.pdf #output/beamertheme-metropolis.pdf
 
 output/eisvogel.pdf: eisvogel.md
 	$(EXTRA_CMD) $< \
@@ -196,12 +196,12 @@ output/eisvogel.pdf: eisvogel.md
 	    --template=eisvogel \
 	    --pdf-engine=xelatex
 
-output/beamertheme-metropolis.pdf: beamertheme-metropolis.md
-	$(EXTRA_CMD) $< \
-	    --output=$@ \
-	    --to=beamer \
-	    --variable=theme:metropolis \
-	    --variable=themeoptions:numbering=none
+#output/beamertheme-metropolis.pdf: beamertheme-metropolis.md
+#	$(EXTRA_CMD) $< \
+#	    --output=$@ \
+#	    --to=beamer \
+#	    --variable=theme:metropolis \
+#	    --variable=themeoptions:numbering=none
 
 #   ____ _
 #  / ___| | ___  __ _ _ __

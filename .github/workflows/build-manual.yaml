@@ -71,16 +71,11 @@ jobs:
         run: make test-extra
 
       - name: Push
-        if: >-
-          (github.event_name == 'push' || github.event_name == 'schedule') &&
-          github.repository == 'innofactororg/pandoc-dockerfiles'
+        if: github.repository == 'innofactororg/pandoc-dockerfiles'
         run: |
           # Log into registry
           echo "${{ secrets.DOCKER_HUB_TOKEN }}" |
             docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
-          #make push-minimal
           if [ "$STACK" != 'static' ]; then
-              #make push-core
-              #make push-latex
               make push-extra
           fi

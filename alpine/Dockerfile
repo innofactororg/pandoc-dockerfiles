@@ -177,6 +177,13 @@ WORKDIR /data
 # extra ##############################################################
 FROM alpine-latex as alpine-extra
 
+# NOTE: to maintainers, please keep this listing alphabetical.
+RUN apk --no-cache add \
+        bash \
+        font-carlito \
+        git \
+        jq
+
 COPY common/latex/texlive.profile /root/texlive.profile
 COPY common/extra/packages.txt /root/extra_packages.txt
 COPY common/extra/requirements.txt /root/extra_requirements.txt

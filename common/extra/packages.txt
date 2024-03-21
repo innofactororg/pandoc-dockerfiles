@@ -16,7 +16,7 @@ trimspaces
 abstract
 adjustbox
 awesomebox
-babel-german
+#babel-german
 background
 bidi
 catchfile
@@ -60,11 +60,13 @@ sourceserifpro
 
 #########################################################################
 # Required by Beamer/Metropolis
-beamertheme-metropolis
-pgfopts
-tcolorbox
-environ
-tikzfill
+#beamertheme-metropolis
+#pgfopts
+#tcolorbox
+#environ
+#tikzfill
 
 # https://github.com/pandoc/dockerfiles/issues/135
 enumitem
+
+lastpage

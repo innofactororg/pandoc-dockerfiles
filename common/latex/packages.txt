@@ -6,17 +6,17 @@
 #       longtable -> tools
 
 # Redundant, as included in `scheme-basic`
-amsfonts
-amsmath
-geometry
-graphics
-hyperref
-iftex
-lm
-luatex
-oberdiek
-pdftexcmds
-tools       # The LaTeX standard tools bundle; e.g., calc, longtable
+#amsfonts
+#amsmath
+#geometry
+#graphics
+#hyperref
+#iftex
+#lm
+#luatex
+#oberdiek
+#pdftexcmds
+#tools       # The LaTeX standard tools bundle; e.g., calc, longtable
 
 # Other basic packages
 beamer
@@ -46,7 +46,7 @@ subfig      # Figures broken into subfigures
 
 # Needed for when `--highlight-style` is used with something other than
 # pygments.
-framed
+#framed
 
 #########################################################################
 # Extra packages for XeTex, LuaTex, and BibLaTex.                     
@@ -68,38 +68,38 @@ xetex
 # those were the ones installed by texlive by default for a long time.
 bidi
 csquotes
-babel-basque
-babel-czech
-babel-danish
-babel-dutch
+#babel-basque
+#babel-czech
+#babel-danish
+#babel-dutch
 babel-english
-babel-finnish
-babel-french
-babel-german
-babel-hungarian
-babel-italian
-babel-norsk
-babel-polish
-babel-portuges
-babel-spanish
-babel-swedish
-hyphen-basque
-hyphen-czech
-hyphen-danish
-hyphen-dutch
+#babel-finnish
+#babel-french
+#babel-german
+#babel-hungarian
+#babel-italian
+#babel-norsk
+#babel-polish
+#babel-portuges
+#babel-spanish
+#babel-swedish
+#hyphen-basque
+#hyphen-czech
+#hyphen-danish
+#hyphen-dutch
 hyphen-english
-hyphen-finnish
-hyphen-french
-hyphen-german
-hyphen-hungarian
-hyphen-italian
-hyphen-norwegian
-hyphen-polish
-hyphen-portuguese
-hyphen-spanish
-hyphen-swedish
+#hyphen-finnish
+#hyphen-french
+#hyphen-german
+#hyphen-hungarian
+#hyphen-italian
+#hyphen-norwegian
+#hyphen-polish
+#hyphen-portuguese
+#hyphen-spanish
+#hyphen-swedish
 # no longer needed in newer pandoc versions
-polyglossia
+#polyglossia
 
 #########################################################################
 # Reference backend options
