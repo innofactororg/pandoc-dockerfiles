@@ -6,9 +6,9 @@
 # The IMAGE variable is required to be defined in order to `docker run` the
 # various tests.  The parent Makefile test targets define this, or alternatively
 #
-# 1. IMAGE=pandoc/image:tag make test-minimal
-# 2. IMAGE=pandoc/image:tag make test-latex
-# 3. IMAGE=pandoc/image:tag make test-extra
+# 1. IMAGE=reijoh/image:tag make test-minimal
+# 2. IMAGE=reijoh/image:tag make test-latex
+# 3. IMAGE=reijoh/image:tag make test-extra
 ifndef IMAGE
 $(error IMAGE variable must be set to docker image to test)
 endif
