@@ -62,13 +62,13 @@ jobs:
       - name: Show config
         run: make show-args
 
-      - name: Build pandoc-extra image
+      - name: Build extra image
         if: ${{ matrix.stack != 'static' }}
-        run: make pandoc-extra
+        run: make extra
 
-      - name: Test pandoc-extra image
+      - name: Test extra image
         if: ${{ matrix.stack != 'static' }}
-        run: make test-pandoc-extra
+        run: make test-extra
 
       - name: Push
         if: github.repository == 'innofactororg/pandoc-dockerfiles'
@@ -77,5 +77,5 @@ jobs:
           echo "${{ secrets.DOCKER_HUB_TOKEN }}" |
             docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
           if [ "$STACK" != 'static' ]; then
-              make push-pandoc-extra
+              make push-extra
           fi

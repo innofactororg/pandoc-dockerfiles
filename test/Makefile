@@ -8,7 +8,7 @@
 #
 # 1. IMAGE=reijoh/image:tag make test-minimal
 # 2. IMAGE=reijoh/image:tag make test-latex
-# 3. IMAGE=reijoh/image:tag make test-pandoc-extra
+# 3. IMAGE=reijoh/image:tag make test-extra
 ifndef IMAGE
 $(error IMAGE variable must be set to docker image to test)
 endif
@@ -19,7 +19,7 @@ DIFF ?= diff
 test_files_path := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 
 .PHONY: test
-test: test-minimal test-latex test-pandoc-extra
+test: test-minimal test-latex test-extra
 
 #   ____
 #  / ___|___  _ __ ___
@@ -187,8 +187,8 @@ EXTRA_CMD = docker run --rm \
 	$(IMAGE) \
 	--fail-if-warnings
 
-.PHONY: test-pandoc-extra
-test-pandoc-extra: output/eisvogel.pdf #output/beamertheme-metropolis.pdf
+.PHONY: test-extra
+test-extra: output/eisvogel.pdf #output/beamertheme-metropolis.pdf
 
 output/eisvogel.pdf: eisvogel.md
 	$(EXTRA_CMD) $< \

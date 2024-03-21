@@ -68,31 +68,31 @@ $(1)-minimal: minimal
 $(1)-freeze-file: $(1)/$(stack_freeze_file)
 # Only alpine and ubuntu support core and latex images
 ifeq ($(1),$(filter $(1),alpine ubuntu))
-.PHONY: $(1)-core $(1)-latex $(1)-pandoc-extra
+.PHONY: $(1)-core $(1)-latex $(1)-extra
 $(1)-core: core
 $(1)-latex: latex
-$(1)-pandoc-extra: pandoc-extra
+$(1)-pandoc: extra
 endif
 
 # Do the same for test targets, again to allow for tab completion.
-.PHONY: test-$(1) test-$(1)-minimal test-$(1)-core test-$(1)-latex test-$(1)-pandoc-extra
-test-$(1) test-$(1)-minimal test-$(1)-core test-$(1)-latex test-$(1)-pandoc-extra: STACK = $(1)
+.PHONY: test-$(1) test-$(1)-minimal test-$(1)-core test-$(1)-latex test-$(1)-extra
+test-$(1) test-$(1)-minimal test-$(1)-core test-$(1)-latex test-$(1)-extra: STACK = $(1)
 test-$(1): test-minimal
 test-$(1)-minimal: test-minimal
 ifeq ($(1),$(filter $(1),alpine ubuntu))
 test-$(1)-core: test-core
 test-$(1)-latex: test-latex
-test-$(1)-pandoc-extra: test-pandoc-extra
+test-$(1)-extra: test-extra
 endif
 # And for push targets
-.PHONY: push-$(1) push-$(1)-minimal push-$(1)-core push-$(1)-latex push-$(1)-pandoc-extra
-push-$(1) push-$(1)-minimal push-$(1)-core push-$(1)-latex push-$(1)-pandoc-extra: STACK = $(1)
+.PHONY: push-$(1) push-$(1)-minimal push-$(1)-core push-$(1)-latex push-$(1)-extra
+push-$(1) push-$(1)-minimal push-$(1)-core push-$(1)-latex push-$(1)-extra: STACK = $(1)
 push-$(1): push-minimal
 push-$(1)-minimal: push-minimal
 ifeq ($(1),$(filter $(1),alpine ubuntu))
 push-$(1)-core: push-core
 push-$(1)-latex: push-latex
-push-$(1)-pandoc-extra: push-pandoc-extra
+push-$(1)-extra: push-extra
 endif
 endef
 # Generate convenience targets for all supported stacks.
@@ -149,8 +149,8 @@ latex: $(STACK)/$(stack_freeze_file)
 		-d "$(makefile_dir)" \
 		-t "$(STACK)-latex" \
 		$(docker_cpu_options)
-# Pandoc-extra #################################################################
-.PHONY: pandoc-extra
+# Extra #################################################################
+.PHONY: extra
 extra: $(STACK)/$(stack_freeze_file)
 	./build.sh build -v \
 		-r pandoc-extra \
@@ -160,7 +160,7 @@ extra: $(STACK)/$(stack_freeze_file)
 		-t "$(STACK)-pandoc-extra" \
 		$(docker_cpu_options)
 # Test ##################################################################
-.PHONY: test-core test-pandoc-extra test-latex test-minimal
+.PHONY: test-core test-extra test-latex test-minimal
 test-minimal: IMAGE ?= reijoh/minimal:$(PANDOC_VERSION)-$(STACK)
 test-minimal:
 	IMAGE=$(IMAGE) make -C test test-minimal
@@ -173,9 +173,9 @@ test-latex: IMAGE ?= reijoh/latex:$(PANDOC_VERSION)-$(STACK)
 test-latex:
 	IMAGE=$(IMAGE) make -C test test-latex
 
-test-pandoc-extra: IMAGE ?= reijoh/pandoc-extra:$(PANDOC_VERSION)-$(STACK)
-test-pandoc-extra:
-	IMAGE=$(IMAGE) make -C test test-pandoc-extra
+test-extra: IMAGE ?= reijoh/pandoc-extra:$(PANDOC_VERSION)-$(STACK)
+test-extra:
+	IMAGE=$(IMAGE) make -C test test-extra
 
 ########################################################################
 # Developer targets                                                    #
@@ -184,7 +184,7 @@ test-pandoc-extra:
 lint:
 	shellcheck $(shell find . -name "*.sh")
 
-.PHONY: push-minimal push-core push-latex push-pandoc-extra
+.PHONY: push-minimal push-core push-latex push-extra
 push-minimal: REPO ?= minimal
 push-minimal:
 	./build.sh push -v \
@@ -209,8 +209,8 @@ push-latex:
 		-c "$(PANDOC_COMMIT)" \
 		-d "$(makefile_dir)" \
 		-t "$(STACK)-latex"
-push-pandoc-extra: REPO ?= pandoc-extra
-push-pandoc-extra:
+push-extra: REPO ?= pandoc-extra
+push-extra:
 	./build.sh push -v \
 		-r $(REPO) \
 		-s "$(STACK)" \
@@ -236,8 +236,8 @@ docs-core: docs
 docs-latex: REPO = latex
 docs-latex: docs
 
-docs-pandoc-extra: REPO = pandoc-extra
-docs-pandoc-extra: docs
+docs-extra: REPO = pandoc-extra
+docs-extra: docs
 
 .PHONY: clean
 clean:
