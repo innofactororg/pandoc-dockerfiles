@@ -56,6 +56,9 @@ jobs:
       - name: Show config
         run: make show-args
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build extra image
         if: ${{ matrix.stack != 'static' }}
         run: make extra
