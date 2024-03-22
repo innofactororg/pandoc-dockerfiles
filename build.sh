@@ -29,52 +29,57 @@ verbosity=0
 action=${1}
 shift
 
-while true; do
+printf 'Performing %s with these parameters:\n' "$action"
+
+while [ $# -gt 0 ]; do
     case "$1" in
         (-c)
-            printf 'shift -c %s\n' "$2"
             pandoc_commit="${2}"
+            printf '\tpandoc_commit: %s\n' "$pandoc_commit"
             shift 2
             ;;
         (-d)
-            printf 'shift -d %s\n' "$2"
             directory="${2}"
+            printf '\tdirectory: %s\n' "$directory"
             shift 2
             ;;
         (-r)
-            printf 'shift -r %s\n' "$2"
             repo="${2}"
+            printf '\trepository: %s\n' "$repo"
             shift 2
             ;;
         (-s)
-            printf 'shift -s %s\n' "$2"
             stack="${2}"
+            printf '\tstack: %s\n' "$stack"
             shift 2
             ;;
         (-t)
-            printf 'shift -t %s\n' "$2"
             target="${2}"
+            printf '\ttarget: %s\n' "$target"
             shift 2
             ;;
         (-f)
-            printf 'shift -f\n'
             create_freeze='true'
-            shift 1
+            printf '\tcreate freeze file: true\n'
+            shift
             ;;
         (-v)
             printf 'shift -v\n'
             verbosity=$((verbosity + 1))
-            shift 1
+            printf '\tverbosity: %s\n' "${verbosity}"
+            shift
             ;;
         (--)
-            printf 'break on --\n'
             shift
             break
             ;;
         (*)
-            printf 'Unknown option: %s\n' "$1"
-            usage
-            exit 1
+            if [ -n "$1" ]; then
+              printf 'Unknown option: %s\n' "$1"
+              usage
+              exit 1
+            fi
+            shift
             ;;
     esac
 done
@@ -90,6 +95,8 @@ if [ ! -f "$version_table_file" ]; then
     printf 'Version table not found: %s\n' "$version_table_file" >&2
     exit 1
 fi
+printf '\tversion_table_file: %s\n' "${version_table_file}"
+
 # File containing the default stack config
 stack_table_file="${directory}/default-stack.md"
 if [ ! -f "$stack_table_file" ]; then
@@ -132,10 +139,14 @@ case "$stack" in
         exit 1
         ;;
 esac
+printf '\tbase_image_version: %s\n' "$base_image_version"
 
 tag_versions=$(version_table_field 3)
+printf '\ttag_versions: %s\n' "$tag_versions"
 texlive_version=$(version_table_field 6)
+printf '\ttexlive_version: %s\n' "$texlive_version"
 lua_version=$(version_table_field 7)
+printf '\tlua_version: %s\n' "$lua_version"
 
 # Crossref
 extra_packages=pandoc-crossref
@@ -146,25 +157,14 @@ if [ "$stack" = "static" ]; then
     extra_packages=
     without_crossref=true
 fi
+printf '\twithout_crossref: %s\n' "${without_crossref}"
 
 ## The pandoc-cli package did not exist pre pandoc 3.
 ## Do not try to build it if the commit starts with a 2.
 if [ "${pandoc_commit#2}" = "${pandoc_commit}" ]; then
     extra_packages="pandoc-cli ${extra_packages}"
 fi
-
-# Debug output
-printf 'Building with these parameters:\n'
-printf '\tpandoc_commit: %s\n' "$pandoc_commit"
-printf '\tstack: %s\n' "$stack"
-printf '\tbase_image_version: %s\n' "$base_image_version"
-printf '\ttag_versions: %s\n' "$tag_versions"
-printf '\ttexlive_version: %s\n' "$texlive_version"
-printf '\tlua_version: %s\n' "$lua_version"
-printf '\tverbosity: %s\n' "${verbosity}"
 printf '\textra_packages: %s\n' "$extra_packages"
-printf '\twithout_crossref: %s\n' "${without_crossref}"
-printf '\tversion_table_file: %s\n' "${version_table_file}"
 
 # Succeeds if the stack is the default for this repo, in which case the
 # stack can be omitted from the tag.
