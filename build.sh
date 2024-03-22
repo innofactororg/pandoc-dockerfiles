@@ -92,7 +92,9 @@ fi
 
 pandoc_version_opts=$(grep "^| *${pandoc_commit} *|" "$version_table_file")
 if [ -z "$pandoc_version_opts" ]; then
-    printf 'Unsupported version: %s; aborting!\n' "$pandoc_commit" >&2
+    printf 'Unsupported version: %s; trying to create freeze file!\n' "$pandoc_commit" >&2
+    export PANDOC_VERSION="$pandoc_commit"
+    make alpine-freeze-file
     exit 1
 fi
 
@@ -167,9 +169,9 @@ is_default_stack_for_repo ()
 image_name ()
 {
     if [ -z "$2" ]; then
-        printf 'reijoh/%s:%s' "$repo" "${1:-edge}"
+        printf 'ghcr.io/innofactororg/%s:%s' "$repo" "${1:-edge}"
     else
-        printf 'reijoh/%s:%s-%s' "$repo" "${1:-edge}" "$2"
+        printf 'ghcr.io/innofactororg/%s:%s-%s' "$repo" "${1:-edge}" "$2"
     fi
 }
 

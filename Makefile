@@ -112,8 +112,8 @@ freeze-file: $(STACK)/$(stack_freeze_file)
 		$(docker_cpu_options)
 	docker run --rm \
 		-v "$(makefile_dir):/app" \
-	  --env WITHOUT_CROSSREF=$(WITHOUT_CROSSREF) \
-		reijoh/$(STACK)-builder-base:latest-$(STACK) \
+	  --env WITHOUT_CROSSREF=true \
+		ghcr.io/innofactororg/$(STACK)-builder-base:latest-$(STACK) \
 		sh /app/common/pandoc-freeze.sh \
 		    -c $(PANDOC_COMMIT) \
 		    -u "$(shell id -u):$(shell id -g)" \
@@ -161,19 +161,19 @@ extra: $(STACK)/$(stack_freeze_file)
 		$(docker_cpu_options)
 # Test ##################################################################
 .PHONY: test-core test-extra test-latex test-minimal
-test-minimal: IMAGE ?= reijoh/minimal:$(PANDOC_VERSION)-$(STACK)
+test-minimal: IMAGE ?= ghcr.io/innofactororg/minimal:$(PANDOC_VERSION)-$(STACK)
 test-minimal:
 	IMAGE=$(IMAGE) make -C test test-minimal
 
-test-core: IMAGE ?= reijoh/core:$(PANDOC_VERSION)-$(STACK)
+test-core: IMAGE ?= ghcr.io/innofactororg/core:$(PANDOC_VERSION)-$(STACK)
 test-core:
 	test -n "$(WITHOUT_CROSSREF)" || IMAGE=$(IMAGE) make -C test test-core
 
-test-latex: IMAGE ?= reijoh/latex:$(PANDOC_VERSION)-$(STACK)
+test-latex: IMAGE ?= ghcr.io/innofactororg/latex:$(PANDOC_VERSION)-$(STACK)
 test-latex:
 	IMAGE=$(IMAGE) make -C test test-latex
 
-test-extra: IMAGE ?= reijoh/pandoc-extra:$(PANDOC_VERSION)-$(STACK)
+test-extra: IMAGE ?= ghcr.io/innofactororg/pandoc-extra:$(PANDOC_VERSION)-$(STACK)
 test-extra:
 	IMAGE=$(IMAGE) make -C test test-extra
 
