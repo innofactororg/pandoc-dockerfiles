@@ -218,7 +218,7 @@ case "$action" in
         ## build images
         # The use of $(tag_arguments) is correct here
         # shellcheck disable=SC2046
-        printf "Run docker build $@"
+        printf 'Run docker build %s\n' "$@"
         docker build "$@" \
                $(tag_arguments) \
                --build-arg pandoc_commit="${pandoc_commit}" \
