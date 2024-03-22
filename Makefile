@@ -103,7 +103,7 @@ $(foreach img,$(image_stacks),$(eval $(call stack,$(img))))
 freeze-file: $(STACK)/$(stack_freeze_file)
 %/$(stack_freeze_file): STACK = $*
 %/$(stack_freeze_file):
-	./build.sh build -v -f \
+	./build.sh build -v \
 		-r "$(STACK)-builder-base" \
 		-s "$(STACK)" \
 		-c "$(PANDOC_COMMIT)" \

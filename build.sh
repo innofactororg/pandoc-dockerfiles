@@ -64,7 +64,6 @@ while [ $# -gt 0 ]; do
             shift
             ;;
         (-v)
-            printf 'shift -v\n'
             verbosity=$((verbosity + 1))
             printf '\tverbosity: %s\n' "${verbosity}"
             shift
@@ -217,9 +216,7 @@ case "$action" in
         ## build images
         # The use of $(tag_arguments) is correct here
         # shellcheck disable=SC2046
-        printf 'Run docker build %s\n' "$@"
-        docker build "$@" \
-               "$(tag_arguments)" \
+        docker build "$(tag_arguments)" \
                --build-arg pandoc_commit="${pandoc_commit}" \
                --build-arg pandoc_version="${pandoc_version}" \
                --build-arg without_crossref="${without_crossref}" \
