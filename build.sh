@@ -92,9 +92,7 @@ fi
 
 pandoc_version_opts=$(grep "^| *${pandoc_commit} *|" "$version_table_file")
 if [ -z "$pandoc_version_opts" ]; then
-    printf 'Unsupported version: %s; trying to create freeze file!\n' "$pandoc_commit" >&2
-    export PANDOC_VERSION="$pandoc_commit"
-    make alpine-freeze-file
+    printf 'Unsupported version: %s; aborting!\n' "$pandoc_commit" >&2
     exit 1
 fi
 

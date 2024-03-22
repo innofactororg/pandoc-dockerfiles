@@ -60,6 +60,12 @@ jobs:
         if: ${{ matrix.stack != 'static' }}
         run: make extra
 
+      - name: Create freeze file on fail
+        if: failure()
+        run: |
+          export PANDOC_VERSION=3.1.12
+          make alpine-freeze-file
+
       - name: Publish freeze file on fail
         if: failure()
         uses: actions/upload-artifact@ef09cdac3e2d3e60d8ccadda691f4f1cec5035cb #v4.3.1 + 3 commits
