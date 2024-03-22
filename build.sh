@@ -220,7 +220,7 @@ case "$action" in
                --target "${target}" \
                --cache-from type=gha \
                --cache-to type=gha,mode=max \
-               --output=type=docker
+               --output=type=docker \
                -f "${directory}${stack}/Dockerfile"\
                "${directory}"
         ;;
