@@ -8,6 +8,7 @@ usage ()
     printf '\tbuild: build and tag the image\n'
     printf '\tpush: push the tags to Docker Hub\n'
     printf 'Options:\n'
+    printf '  -f: create freeze file\n'
     printf '  -c: targeted pandoc commit, e.g. 2.9.2.1\n'
     printf '  -d: directory\n'
     printf '  -r: targeted image repository/flavor, e.g. core or latex\n'
@@ -16,7 +17,7 @@ usage ()
     printf '  -v: increase verbosity\n'
 }
 
-if ! args=$(getopt 'c:d:pr:s:t:v' "$@"); then
+if ! args=$(getopt 'c:d:f:pr:s:t:v' "$@"); then
     usage && exit 1
 fi
 # The variable is intentionally left unquoted.
@@ -217,6 +218,7 @@ case "$action" in
         ## build images
         # The use of $(tag_arguments) is correct here
         # shellcheck disable=SC2046
+        printf "Run docker build $@"
         docker build "$@" \
                $(tag_arguments) \
                --build-arg pandoc_commit="${pandoc_commit}" \
