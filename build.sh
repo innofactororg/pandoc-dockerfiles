@@ -23,6 +23,7 @@ fi
 # shellcheck disable=SC2086
 set -- $args
 
+create_freeze=
 directory=.
 pandoc_commit=main
 repo=core
@@ -39,6 +40,10 @@ while true; do
         (-d)
             directory="${2}"
             shift 2
+            ;;
+        (-f)
+            create_freeze='true'
+            shift 1
             ;;
         (-r)
             repo="${2}"
@@ -93,6 +98,12 @@ fi
 pandoc_version_opts=$(grep "^| *${pandoc_commit} *|" "$version_table_file")
 if [ -z "$pandoc_version_opts" ]; then
     printf 'Unsupported version: %s; aborting!\n' "$pandoc_commit" >&2
+    exit 1
+fi
+
+freeze_file="${directory}/${stack}/freeze/pandoc-$pandoc_commit.project.freeze"
+if [ "$pandoc_commit" != "main" ] && [ ! -f "$freeze_file" ] && [ -z "$create_freeze" ]; then
+    printf 'Freeze file not found: %s\n' "$freeze_file" >&2
     exit 1
 fi
 
