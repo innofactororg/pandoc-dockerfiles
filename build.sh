@@ -10,14 +10,12 @@ usage ()
     printf 'Options:\n'
     printf '  -c: targeted pandoc commit, e.g. 2.9.2.1\n'
     printf '  -d: directory\n'
-    printf '  -f: create freeze file\n'
     printf '  -r: targeted image repository/flavor, e.g. core or latex\n'
     printf '  -s: stack on which the image will be based\n'
     printf '  -t: docker build target\n'
     printf '  -v: increase verbosity\n'
 }
 
-create_freeze=
 directory=.
 pandoc_commit=main
 repo=core
@@ -58,11 +56,6 @@ while [ $# -gt 0 ]; do
             printf '\ttarget: %s\n' "$target"
             shift 2
             ;;
-        (-f)
-            create_freeze='true'
-            printf '\tcreate freeze file: true\n'
-            shift
-            ;;
         (-v)
             verbosity=$((verbosity + 1))
             printf '\tverbosity: %s\n' "${verbosity}"
@@ -89,7 +82,7 @@ if [ "$pandoc_commit" = "main" ]; then
 fi
 
 # File containing the version table
-version_table_file="${directory}/versions.md"
+version_table_file="${directory}versions.md"
 if [ ! -f "$version_table_file" ]; then
     printf 'Version table not found: %s\n' "$version_table_file" >&2
     exit 1
@@ -97,7 +90,7 @@ fi
 printf '\tversion_table_file: %s\n' "${version_table_file}"
 
 # File containing the default stack config
-stack_table_file="${directory}/default-stack.md"
+stack_table_file="${directory}default-stack.md"
 if [ ! -f "$stack_table_file" ]; then
     printf 'Stack table not found: %s\n' "$stack_table_file" >&2
     exit 1
@@ -109,8 +102,8 @@ if [ -z "$pandoc_version_opts" ]; then
     exit 1
 fi
 
-freeze_file="${directory}/${stack}/freeze/pandoc-$pandoc_commit.project.freeze"
-if [ "$pandoc_commit" != "main" ] && [ ! -f "$freeze_file" ] && [ -z "$create_freeze" ]; then
+freeze_file="${directory}${stack}/freeze/pandoc-$pandoc_commit.project.freeze"
+if [ "$pandoc_commit" != "main" ] && [ ! -f "$freeze_file" ] && [ -z "$CREATE_FREEZE_FILE" ]; then
     printf 'Freeze file not found: %s\n' "$freeze_file" >&2
     exit 1
 fi
@@ -225,7 +218,7 @@ case "$action" in
                --build-arg texlive_version="${texlive_version}" \
                --build-arg lua_version="${lua_version}" \
                --target "${target}"\
-               -f "${directory}/${stack}/Dockerfile"\
+               -f "${directory}${stack}/Dockerfile"\
                "${directory}"
         ;;
     (*)
