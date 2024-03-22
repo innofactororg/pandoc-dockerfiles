@@ -220,7 +220,7 @@ case "$action" in
         # shellcheck disable=SC2046
         printf 'Run docker build %s\n' "$@"
         docker build "$@" \
-               $(tag_arguments) \
+               "$(tag_arguments)" \
                --build-arg pandoc_commit="${pandoc_commit}" \
                --build-arg pandoc_version="${pandoc_version}" \
                --build-arg without_crossref="${without_crossref}" \
