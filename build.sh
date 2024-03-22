@@ -17,15 +17,6 @@ usage ()
     printf '  -v: increase verbosity\n'
 }
 
-if ! args=$(getopt 'c:d:f:pr:s:t:v' "$@"); then
-    usage && exit 1
-fi
-# The variable is intentionally left unquoted.
-# shellcheck disable=SC2086
-set -- $args
-
-printf 'Script arguments: %s\n' "$args"
-
 create_freeze=
 directory=.
 pandoc_commit=main
@@ -41,34 +32,42 @@ shift
 while true; do
     case "$1" in
         (-c)
+            printf 'shift -c %s\n' "$2"
             pandoc_commit="${2}"
             shift 2
             ;;
         (-d)
+            printf 'shift -d %s\n' "$2"
             directory="${2}"
             shift 2
             ;;
         (-r)
+            printf 'shift -r %s\n' "$2"
             repo="${2}"
             shift 2
             ;;
         (-s)
+            printf 'shift -s %s\n' "$2"
             stack="${2}"
             shift 2
             ;;
         (-t)
+            printf 'shift -t %s\n' "$2"
             target="${2}"
             shift 2
             ;;
         (-f)
+            printf 'shift -f\n'
             create_freeze='true'
             shift 1
             ;;
         (-v)
+            printf 'shift -v\n'
             verbosity=$((verbosity + 1))
             shift 1
             ;;
         (--)
+            printf 'break on --\n'
             shift
             break
             ;;
@@ -155,19 +154,17 @@ if [ "${pandoc_commit#2}" = "${pandoc_commit}" ]; then
 fi
 
 # Debug output
-if [ "$verbosity" -gt 0 ]; then
-    printf 'Building with these parameters:\n'
-    printf '\tpandoc_commit: %s\n' "$pandoc_commit"
-    printf '\tstack: %s\n' "$stack"
-    printf '\tbase_image_version: %s\n' "$base_image_version"
-    printf '\ttag_versions: %s\n' "$tag_versions"
-    printf '\ttexlive_version: %s\n' "$texlive_version"
-    printf '\tlua_version: %s\n' "$lua_version"
-    printf '\tverbosity: %s\n' "${verbosity}"
-    printf '\textra_packages: %s\n' "$extra_packages"
-    printf '\twithout_crossref: %s\n' "${without_crossref}"
-    printf '\tversion_table_file: %s\n' "${version_table_file}"
-fi
+printf 'Building with these parameters:\n'
+printf '\tpandoc_commit: %s\n' "$pandoc_commit"
+printf '\tstack: %s\n' "$stack"
+printf '\tbase_image_version: %s\n' "$base_image_version"
+printf '\ttag_versions: %s\n' "$tag_versions"
+printf '\ttexlive_version: %s\n' "$texlive_version"
+printf '\tlua_version: %s\n' "$lua_version"
+printf '\tverbosity: %s\n' "${verbosity}"
+printf '\textra_packages: %s\n' "$extra_packages"
+printf '\twithout_crossref: %s\n' "${without_crossref}"
+printf '\tversion_table_file: %s\n' "${version_table_file}"
 
 # Succeeds if the stack is the default for this repo, in which case the
 # stack can be omitted from the tag.
