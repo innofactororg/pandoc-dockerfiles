@@ -17,14 +17,14 @@ usage ()
     printf '  -v: increase verbosity\n'
 }
 
-printf 'Script arguments: %s\n' "$@"
-
 if ! args=$(getopt 'c:d:f:pr:s:t:v' "$@"); then
     usage && exit 1
 fi
 # The variable is intentionally left unquoted.
 # shellcheck disable=SC2086
 set -- $args
+
+printf 'Script arguments: %s\n' "$args"
 
 create_freeze=
 directory=.
@@ -33,6 +33,10 @@ repo=core
 stack=static
 target=${stack}-${repo}
 verbosity=0
+
+### Actions
+action=${1}
+shift
 
 while true; do
     case "$1" in
@@ -75,10 +79,6 @@ while true; do
             ;;
     esac
 done
-
-### Actions
-action=${1}
-shift
 
 pandoc_version=${pandoc_commit}
 if [ "$pandoc_commit" = "main" ]; then
