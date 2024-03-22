@@ -2,20 +2,22 @@
 
 usage ()
 {
-    printf 'Generates all parameters for the docker image\n'
+    printf 'build.sh: Generates all parameters for the docker image\n\n'
     printf 'Usage: %s ACTION [OPTIONS] [EXTRA BUILD ARGS]\n\n' "$0"
     printf 'Actions:\n'
     printf '\tbuild: build and tag the image\n'
-    printf '\tpush: push the tags to Docker Hub\n'
+    printf '\tpush: push the tags to Docker Hub\n\n'
     printf 'Options:\n'
-    printf '  -f: create freeze file\n'
     printf '  -c: targeted pandoc commit, e.g. 2.9.2.1\n'
     printf '  -d: directory\n'
+    printf '  -f: create freeze file\n'
     printf '  -r: targeted image repository/flavor, e.g. core or latex\n'
     printf '  -s: stack on which the image will be based\n'
     printf '  -t: docker build target\n'
     printf '  -v: increase verbosity\n'
 }
+
+printf 'Script arguments: %s\n' "$@"
 
 if ! args=$(getopt 'c:d:f:pr:s:t:v' "$@"); then
     usage && exit 1
@@ -42,10 +44,6 @@ while true; do
             directory="${2}"
             shift 2
             ;;
-        (-f)
-            create_freeze='true'
-            shift 1
-            ;;
         (-r)
             repo="${2}"
             shift 2
@@ -57,6 +55,10 @@ while true; do
         (-t)
             target="${2}"
             shift 2
+            ;;
+        (-f)
+            create_freeze='true'
+            shift 1
             ;;
         (-v)
             verbosity=$((verbosity + 1))
