@@ -197,8 +197,7 @@ RUN sed -e 's/ *#.*$//' -e '/^ *$/d' /root/extra_packages.txt | \
 
 RUN apk --no-cache add py-pip
 
-RUN pip --no-cache-dir --break-system-packages \
-    install -r /root/extra_requirements.txt \
+RUN pip --no-cache-dir install -r /root/extra_requirements.txt \
   && rm -f /root/extra_requirements.txt
 
 ARG TEMPLATES_DIR=/.pandoc/templates
