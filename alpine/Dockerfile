@@ -202,4 +202,14 @@ RUN python3 -m venv .venv \
   && pip --no-cache-dir install -r /root/extra_requirements.txt \
   && rm -f /root/extra_requirements.txt
 
+ARG TEMPLATES_DIR=/.pandoc/templates
+
+RUN mkdir -p ${TEMPLATES_DIR} && \
+    ln -s /.pandoc /root/.pandoc
+
+# eisvogel
+ARG EISVOGEL_REPO=https://raw.githubusercontent.com/Wandmalfarbe/pandoc-latex-template
+ARG EISVOGEL_VERSION=2.4.2
+RUN wget ${EISVOGEL_REPO}/${EISVOGEL_VERSION}/eisvogel.tex -O ${TEMPLATES_DIR}/eisvogel.latex
+
 CMD [ "node" ]
