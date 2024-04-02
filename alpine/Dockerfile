@@ -1,6 +1,6 @@
 # Base ##################################################################
-ARG base_image_version=3.19
-FROM alpine:$base_image_version AS alpine-builder-base
+ARG base_image_version=18-alpine3.19
+FROM node:$base_image_version AS alpine-builder-base
 WORKDIR /app
 
 ARG lua_version=5.4
@@ -90,16 +90,16 @@ RUN find dist-newstyle \
          -exec cp '{}' /usr/local/bin/ ';'
 
 # Minimal ###############################################################
-FROM alpine:$base_image_version AS alpine-minimal
+FROM node:$base_image_version AS alpine-minimal
 ARG pandoc_version=edge
 ARG lua_version=5.4
 LABEL maintainer='Albert Krewinkel <albert+pandoc@zeitkraut.de>'
 LABEL org.pandoc.maintainer='Albert Krewinkel <albert+pandoc@zeitkraut.de>'
 LABEL org.pandoc.author "John MacFarlane"
 LABEL org.pandoc.version "$pandoc_version"
+LABEL com.azure.dev.pipelines.agent.handler.node.path "/usr/local/bin/node"
 
 WORKDIR /data
-ENTRYPOINT ["/usr/local/bin/pandoc"]
 
 COPY --from=alpine-builder \
   /usr/local/bin/pandoc \
@@ -182,7 +182,9 @@ RUN apk --no-cache add \
         bash \
         font-carlito \
         git \
-        jq
+        jq \
+        shadow \
+        sudo
 
 COPY common/latex/texlive.profile /root/texlive.profile
 COPY common/extra/packages.txt /root/extra_packages.txt
@@ -200,12 +202,4 @@ RUN python3 -m venv .venv \
   && pip --no-cache-dir install -r /root/extra_requirements.txt \
   && rm -f /root/extra_requirements.txt
 
-ARG TEMPLATES_DIR=/.pandoc/templates
-
-RUN mkdir -p ${TEMPLATES_DIR} && \
-    ln -s /.pandoc /root/.pandoc
-
-# eisvogel
-ARG EISVOGEL_REPO=https://raw.githubusercontent.com/Wandmalfarbe/pandoc-latex-template
-ARG EISVOGEL_VERSION=v2.4.0
-RUN curl -o ${TEMPLATES_DIR}/eisvogel.latex ${EISVOGEL_REPO}/${EISVOGEL_VERSION}/eisvogel.tex
+CMD [ "node" ]

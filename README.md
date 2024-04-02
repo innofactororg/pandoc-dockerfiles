@@ -6,13 +6,13 @@ This repo contains a collection of Dockerfiles to build various
 
 **Contents**
 
+- [pandoc Dockerfiles](#pandoc-dockerfiles)
 - [Available Images](#available-images)
 - [Usage](#usage)
-    - [Basic Usage](#basic-usage)
-    - [Pandoc Scripts](#pandoc-scripts)
-    - [GitHub Actions](#github-actions)
-- [Maintenance Notes](#maintenance-notes)
-    - [Managing new Pandoc Releases](#managing-new-pandoc-releases)
+  - [Basic Usage](#basic-usage)
+  - [Pandoc Scripts](#pandoc-scripts)
+  - [GitHub Actions](#github-actions)
+  - [Building custom images](#building-custom-images)
 - [License](#license)
 
 Available Images
@@ -20,25 +20,11 @@ Available Images
 
 Docker images hosted here have the following variants:
 
-- minimal: kept as small as possible. See the [pandoc/minimal][]
-  repository.
-- core: suitable for common conversion tasks; includes additional
-  libraries and programs. See the [pandoc/core][] repository.
-- latex: builds on top of the core image, and provides a basic
-  LaTeX installation in addition. This includes all packages that
-  `pandoc` _might_ use, and any libraries needed by these
-  packages. See the [pandoc/latex][] repository.
-- extra: extends the latex image with a curated selection of templates,
-  filters, fonts, etc. See the [pandoc/extra][] repository.
+- extra: extends the latex image with a curated selection of packages, filters, fonts, etc.
 
-All images are based on the `alpine` stack. The [pandoc/minimal][],
-[pandoc/latex][] and [pandoc/extra][] images are also available with 
-an `ubuntu` stack.
+Images are based on the `alpine` stack.
 
-[pandoc/minimal]: https://hub.docker.com/r/pandoc/minimal
-[pandoc/core]: https://hub.docker.com/r/pandoc/core
-[pandoc/latex]: https://hub.docker.com/r/pandoc/latex
-[pandoc/extra]: https://hub.docker.com/r/pandoc/extra
+[extra]: https://github.com/innofactororg/pandoc-dockerfiles/pkgs/container/pandoc-extra
 
 Usage
 ================================================================================
@@ -80,7 +66,7 @@ Basic Usage
    convert to HTML.
 
    ```sh
-   docker run --rm --volume "`pwd`:/data" --user `id -u`:`id -g` pandoc/latex:2.6 README.md
+   docker run --rm --volume "`pwd`:/data" --entrypoint /usr/local/bin/pandoc --user `id -u`:`id -g` ghcr.io/innofactororg/pandoc-extra:3.1.12-alpine README.md
    ```
 
    The `--volume` flag maps some directory on *your machine* (lefthand side of
@@ -93,14 +79,16 @@ Basic Usage
    It is hence a good idea to specify for docker the user and group IDs to use
    via the `--user` flag.
 
-   `pandoc/latex:2.6` declares the image that you're going to run. It's always a
-   good idea to hardcode the version, lest future releases break your code.
+   `ghcr.io/innofactororg/pandoc-extra:3.1.12-alpine` declares the image that
+   you're going to run. It's always a good idea to hardcode the version, lest
+   future releases break your code.
 
    It may look weird to you that you can just add `README.md` at the end of this
-   line, but that's just because the `pandoc/latex:2.6` will simply prepend
-   `pandoc` in front of anything you write after `pandoc/latex:2.6` (this is
-   known as the `ENTRYPOINT` field of the Dockerfile). So what you're really
-   running here is `pandoc README.md`, which is a valid pandoc command.
+   line, but that's just because the `ghcr.io/innofactororg/pandoc-extra:3.1.12-alpine`
+   will simply prepend `pandoc` in front of anything you write after
+   `ghcr.io/innofactororg/pandoc-extra:3.1.12-alpine` (this is known as the
+   `ENTRYPOINT` field of the Dockerfile). So what you're really running here is
+   `pandoc README.md`, which is a valid pandoc command.
 
    If you don't have the current docker image on your computer yet, the
    downloading and unpacking is going to take a while. It'll be (much) faster
@@ -142,13 +130,11 @@ You only have to do this once for each script file.
 You can then run the completed script file in a pandoc docker container like so:
 
 ```sh
-docker run --rm --volume "`pwd`:/data" --entrypoint "/data/script.sh" pandoc/latex:2.6
+docker run --rm --volume "`pwd`:/data" --entrypoint "/data/script.sh" ghcr.io/innofactororg/pandoc-extra:3.1.12-alpine
 ```
 
 Notice that the above `script.sh` *did* specify `pandoc`, and you can't just
-omit it as in the simpler command above. This is because the `--entrypoint` flag
-*overrides* the `ENTRYPOINT` field in the docker file (`pandoc`, in our case),
-so you must include the command.
+omit it as in the simpler command above.
 
 GitHub Actions
 --------------------------------------------------------------------------------
@@ -194,7 +180,6 @@ See Docker documentation for more details, for example [part 2 of the Get
 Started guide](https://docs.docker.com/get-started/part2/).
 
 [spellcheck](https://github.com/pandoc/lua-filters/tree/master/spellcheck)
-
 
 License
 ================================================================================

@@ -27,7 +27,7 @@ test: test-minimal test-latex test-extra
 # | |__| (_) | | |  __/
 #  \____\___/|_|  \___|
 #
-CORE_CMD = docker run --rm -v $(test_files_path):/data $(IMAGE)
+CORE_CMD = docker run --rm -v $(test_files_path):/data --entrypoint /usr/local/bin/pandoc $(IMAGE)
 OUTPUT_FORMATS=markdown epub docx latex html
 
 .PHONY: test-minimal testsuite-to-% test-bib-conversion test-lua
@@ -39,7 +39,7 @@ testsuite-to-%: testsuite.native
 	$(CORE_CMD) $< --output=/dev/null --to=$* --mathml
 
 test-lua: testsuite.native lpeg-test.lua
-	docker run --rm -v $(test_files_path):/data $(IMAGE) \
+	docker run --rm -v $(test_files_path):/data --entrypoint /usr/local/bin/pandoc $(IMAGE) \
 	    --lua-filter=lpeg-test.lua --to=json --output=/dev/null $<
 
 #   ____                             __
@@ -62,10 +62,10 @@ test-crossref-filter: $(test_files_path)/crossref-test.md \
 		$(test_files_path)/minversion.lua
 	@printf "\n### testing document conversion with pandoc-crossref filter...\n"
 
-	@if docker run --rm -v $(test_files_path):/data $(IMAGE) \
+	@if docker run --rm -v $(test_files_path):/data --entrypoint /usr/local/bin/pandoc $(IMAGE) \
 	      --metadata=minversion=2.16 \
 	      --lua-filter=minversion.lua; then \
-	    docker run --rm -v $(test_files_path):/data $(IMAGE) \
+	    docker run --rm -v $(test_files_path):/data --entrypoint /usr/local/bin/pandoc $(IMAGE) \
 	        --filter=pandoc-crossref \
 	        --to=native \
 	        crossref-test.md | $(DIFF) expected/crossref-test.native -; \
@@ -81,6 +81,7 @@ test-crossref-filter: $(test_files_path)/crossref-test.md \
 #
 LATEX_CMD = docker run --rm \
 	-v $(test_files_path):/data \
+	--entrypoint /usr/local/bin/pandoc \
 	$(IMAGE) \
 	--fail-if-warnings
 
@@ -184,6 +185,7 @@ $(code_targets): output/code-highlight-%.pdf: code-highlight.md
 #
 EXTRA_CMD = docker run --rm \
 	-v $(test_files_path):/data \
+	--entrypoint /usr/local/bin/pandoc \
 	$(IMAGE) \
 	--fail-if-warnings
 

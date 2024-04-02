@@ -25,17 +25,13 @@ Supported stacks <a name="supported-stacks"></a>
 ------------------------------------------------------------------
 
 All tags can be suffixed with a stack-identifier, e.g.,
-`latest-ubuntu`. This allows to chose a specific operation system.
+`latest-alpine`. This allows to chose a specific operation system.
 Available stacks are
 
 - *alpine*: [Alpine] Linux.
-- *ubuntu*: [Ubuntu] Linux.
-
-The default for `pandoc/latex` is `alpine`.
 
 [Alpine]: https://alpinelinux.org/
 [Ubuntu]: https://ubuntu.org/
-
 
 ``` include
 docs/sections/run.md
@@ -54,16 +50,3 @@ Note that, due to the way TeXLive releases work, users who build
 derivative images may experience problems if the TeXLive version
 has been newly frozen. This can be resolved by pulling the
 updated base image again.
-
-Other images
-------------------------------------------------------------------
-
-If the images here do not fit your use-case, then checkout these
-alternatives:
-
--   [**pandoc/minimal**][]: small images with the pandoc executable.
--   [**pandoc/core**][]: based on minimal images, but ships with
-    additional programs commonly used during conversions.
-
-[**pandoc/minimal**]: https://hub.docker.com/r/pandoc/minimal
-[**pandoc/core**]: https://hub.docker.com/r/pandoc/core

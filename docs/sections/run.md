@@ -7,13 +7,14 @@ readability):
 ``` sh
 docker run --rm \
        --volume "$(pwd):/data" \
+       --entrypoint /usr/local/bin/pandoc \
        --user $(id -u):$(id -g) \
-       pandoc/latex README.md -o outfile.pdf
+       ghcr.io/innofactororg/pandoc-extra README.md -o outfile.pdf
 ```
 
 This will convert the file `README.md` in the current working
 directory into `outfile.pdf`. Note that Docker options go *before*
-the image name, here `pandoc/latex`, while pandoc options come
+the image name, here `ghcr.io/innofactororg/pandoc-extra`, while pandoc options come
 *after* it.
 
 The `--volume` flag maps some local directory (lefthand side of
@@ -31,5 +32,5 @@ alias:
 
 ``` sh
 alias pandock=\
-'docker run --rm -v "$(pwd):/data" -u $(id -u):$(id -g) pandoc/latex'
+'docker run --rm -v "$(pwd):/data" --entrypoint /usr/local/bin/pandoc -u $(id -u):$(id -g) ghcr.io/innofactororg/pandoc-extra'
 ```
