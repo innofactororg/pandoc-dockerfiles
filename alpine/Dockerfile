@@ -32,7 +32,7 @@ RUN apk --no-cache add \
         zlib-dev
 
 # Install GHCup, GHC, Cabal
-RUN curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
+RUN curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org --retry 4 | sh
 # Add ghcup to PATH
 ENV PATH=${PATH}:/root/.local/bin
 ENV PATH=${PATH}:/root/.ghcup/bin
@@ -98,6 +98,7 @@ LABEL org.pandoc.maintainer='Albert Krewinkel <albert+pandoc@zeitkraut.de>'
 LABEL org.pandoc.author "John MacFarlane"
 LABEL org.pandoc.version "$pandoc_version"
 LABEL com.azure.dev.pipelines.agent.handler.node.path "/usr/local/bin/node"
+LABEL org.opencontainers.image.description "Modified from https://hub.docker.com/r/pandoc/extra to include additional packages configuration"
 
 WORKDIR /data
 
@@ -189,7 +190,10 @@ COPY common/extra/packages.txt /root/extra_packages.txt
 RUN sed -e 's/ *#.*$//' -e '/^ *$/d' /root/extra_packages.txt | xargs tlmgr install && \
     rm -f /root/extra_packages.txt
 
-RUN python3 -m pip install --break-system-packages pandoc-latex-environment python-dotenv Office365-REST-Python-Client
+RUN python3 -m pip install --break-system-packages --no-cache-dir \
+    pandoc-latex-environment \
+    python-dotenv \
+    Office365-REST-Python-Client
 
 # Install eisvogel template
 ARG TEMPLATES_DIR=/.pandoc/templates
@@ -199,6 +203,6 @@ RUN mkdir -p ${TEMPLATES_DIR} && \
 
 ARG EISVOGEL_REPO=https://raw.githubusercontent.com/Wandmalfarbe/pandoc-latex-template
 ARG EISVOGEL_VERSION=2.4.2
-RUN curl -o ${TEMPLATES_DIR}/eisvogel.latex ${EISVOGEL_REPO}/${EISVOGEL_VERSION}/eisvogel.tex
+RUN curl -sSL --retry 4 -o ${TEMPLATES_DIR}/eisvogel.latex ${EISVOGEL_REPO}/${EISVOGEL_VERSION}/eisvogel.tex
 
 CMD [ "node" ]
