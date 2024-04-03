@@ -46,9 +46,9 @@ RUN ghcup install ghc --set 9.6
 RUN ghcup install cabal --set 3.10
 
 COPY cabal.root.config /root/.cabal/config
-RUN cabal --version \
-  && ghc --version \
-  && cabal v2-update
+RUN cabal --version && \
+    ghc --version && \
+    cabal v2-update
 
 # Builder ###############################################################
 FROM alpine-builder-base as alpine-builder
@@ -75,8 +75,8 @@ ARG extra_packages="pandoc-cli pandoc-crossref"
 # Build pandoc and pandoc-crossref. The `allow-newer` is required for
 # when pandoc-crossref has not been updated yet, but we want to build
 # anyway.
-RUN cabal v2-update \
-  && cabal v2-build \
+RUN cabal v2-update && \
+    cabal v2-build \
       --allow-newer 'lib:pandoc' \
       --disable-tests \
       --disable-bench \
@@ -161,14 +161,12 @@ COPY common/latex/install-texlive.sh /root/install-texlive.sh
 ARG texlive_version=
 
 # Request musl precompiled binary access
-RUN echo "binary_x86_64-linuxmusl 1" >> /root/texlive.profile \
-  && /root/install-texlive.sh $texlive_version \
-  && sed -e 's/ *#.*$//' -e '/^ *$/d' /root/packages.txt | \
-     xargs tlmgr install \
-  && rm -f /root/texlive.profile \
-           /root/install-texlive.sh
-  && TERM=dumb luaotfload-tool --update \
-  && chmod -R o+w /opt/texlive/texdir/texmf-var
+RUN echo "binary_x86_64-linuxmusl 1" >> /root/texlive.profile && \
+    /root/install-texlive.sh $texlive_version && \
+    sed -e 's/ *#.*$//' -e '/^ *$/d' /root/packages.txt | xargs tlmgr install && \
+    rm -f /root/texlive.profile /root/install-texlive.sh && \
+    TERM=dumb luaotfload-tool --update && \
+    chmod -R o+w /opt/texlive/texdir/texmf-var
 
 WORKDIR /data
 
@@ -186,9 +184,8 @@ RUN apk --no-cache add \
 
 COPY common/extra/packages.txt /root/extra_packages.txt
 
-RUN sed -e 's/ *#.*$//' -e '/^ *$/d' /root/extra_packages.txt | \
-    xargs tlmgr install \
-  && rm -f /root/extra_packages.txt
+RUN sed -e 's/ *#.*$//' -e '/^ *$/d' /root/extra_packages.txt | xargs tlmgr install && \
+    rm -f /root/extra_packages.txt
 
 # Install eisvogel template
 ARG TEMPLATES_DIR=/.pandoc/templates
