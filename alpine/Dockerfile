@@ -156,7 +156,6 @@ WORKDIR /root
 # Installer scripts and config
 COPY common/latex/texlive.profile /root/texlive.profile
 COPY common/latex/install-texlive.sh /root/install-texlive.sh
-COPY common/latex/packages.txt /root/packages.txt
 
 # TeXLive version to install (leave empty to use the latest version).
 ARG texlive_version=
@@ -167,8 +166,7 @@ RUN echo "binary_x86_64-linuxmusl 1" >> /root/texlive.profile \
   && sed -e 's/ *#.*$//' -e '/^ *$/d' /root/packages.txt | \
      xargs tlmgr install \
   && rm -f /root/texlive.profile \
-           /root/install-texlive.sh \
-           /root/packages.txt \
+           /root/install-texlive.sh
   && TERM=dumb luaotfload-tool --update \
   && chmod -R o+w /opt/texlive/texdir/texmf-var
 
@@ -186,25 +184,18 @@ RUN apk --no-cache add \
         shadow \
         sudo
 
-COPY common/latex/texlive.profile /root/texlive.profile
 COPY common/extra/packages.txt /root/extra_packages.txt
 
 RUN sed -e 's/ *#.*$//' -e '/^ *$/d' /root/extra_packages.txt | \
     xargs tlmgr install \
-  && rm -f /root/texlive.profile \
-           /root/extra_packages.txt
+  && rm -f /root/extra_packages.txt
 
-RUN apk --no-cache add py-pip pipx
-
-RUN python3 -m pipx ensurepath
-RUN python3 -m pipx install pandoc-latex-environment
-
+# Install eisvogel template
 ARG TEMPLATES_DIR=/.pandoc/templates
 
 RUN mkdir -p ${TEMPLATES_DIR} && \
     ln -s /.pandoc /root/.pandoc
 
-# eisvogel
 ARG EISVOGEL_REPO=https://raw.githubusercontent.com/Wandmalfarbe/pandoc-latex-template
 ARG EISVOGEL_VERSION=2.4.2
 RUN curl -o ${TEMPLATES_DIR}/eisvogel.latex ${EISVOGEL_REPO}/${EISVOGEL_VERSION}/eisvogel.tex
