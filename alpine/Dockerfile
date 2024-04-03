@@ -180,6 +180,7 @@ RUN apk --no-cache add \
         font-carlito \
         git \
         jq \
+        py-pip \
         shadow \
         sudo
 
