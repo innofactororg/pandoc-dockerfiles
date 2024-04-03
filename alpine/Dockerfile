@@ -189,6 +189,8 @@ COPY common/extra/packages.txt /root/extra_packages.txt
 RUN sed -e 's/ *#.*$//' -e '/^ *$/d' /root/extra_packages.txt | xargs tlmgr install && \
     rm -f /root/extra_packages.txt
 
+RUN python3 -m pip install --break-system-packages pandoc-latex-environment
+
 # Install eisvogel template
 ARG TEMPLATES_DIR=/.pandoc/templates
 
