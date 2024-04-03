@@ -188,17 +188,16 @@ RUN apk --no-cache add \
 
 COPY common/latex/texlive.profile /root/texlive.profile
 COPY common/extra/packages.txt /root/extra_packages.txt
-COPY common/extra/requirements.txt /root/extra_requirements.txt
 
 RUN sed -e 's/ *#.*$//' -e '/^ *$/d' /root/extra_packages.txt | \
     xargs tlmgr install \
   && rm -f /root/texlive.profile \
            /root/extra_packages.txt
 
-RUN apk --no-cache add py-pip
+RUN apk --no-cache add py-pip pipx
 
-RUN pip --no-cache-dir install -r /root/extra_requirements.txt \
-  && rm -f /root/extra_requirements.txt
+RUN python3 -m pipx ensurepath
+RUN python3 -m pipx install pandoc-latex-environment
 
 ARG TEMPLATES_DIR=/.pandoc/templates
 
