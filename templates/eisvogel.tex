@@ -34,8 +34,7 @@
 %%
 
 %%
-% This is a modified version of the Eisvogel pandoc LaTeX template v2.4.2:
-% https://github.com/Wandmalfarbe/pandoc-latex-template/blob/13fa67d7db669ca8f84826fc5e58ca0ed15a14be/eisvogel.tex
+% This is the Eisvogel pandoc LaTeX template.
 %
 % For usage information and examples visit the official GitHub page:
 % https://github.com/Wandmalfarbe/pandoc-latex-template
@@ -276,14 +275,10 @@ $if(verbatim-in-note)$
 \usepackage{fancyvrb}
 $endif$
 \usepackage{xcolor}
-\definecolor{default-linkcolor}{HTML}{0563C1}
-\definecolor{default-filecolor}{HTML}{0563C1}
-\definecolor{default-citecolor}{HTML}{0563C1}
-\definecolor{default-urlcolor}{HTML}{0563C1}
-\definecolor{titlecolor}{HTML}{7030A0}
-\definecolor{subtitlecolor}{HTML}{1F4E79}
-\definecolor{authorcolor}{HTML}{5B9BD5}
-\definecolor{disclaimercolor}{HTML}{949494}
+\definecolor{default-linkcolor}{HTML}{A50000}
+\definecolor{default-filecolor}{HTML}{A50000}
+\definecolor{default-citecolor}{HTML}{4077C0}
+\definecolor{default-urlcolor}{HTML}{4077C0}
 $if(footnotes-pretty)$
 % load footmisc in order to customize footnotes (footmisc has to be loaded before hyperref, cf. https://tex.stackexchange.com/a/169124/144087)
 \usepackage[hang,flushmargin,bottom,multiple]{footmisc}
@@ -304,10 +299,7 @@ $else$
 \usepackage[margin=2.5cm,includehead=true,includefoot=true,centering,$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
 $endif$
 $endif$
-$if(logo)$
-\usepackage[export]{adjustbox}
-\usepackage{graphicx}
-$elseif(titlepage-top-cover-image)$
+$if(titlepage-logo)$
 \usepackage[export]{adjustbox}
 \usepackage{graphicx}
 $endif$
@@ -631,7 +623,7 @@ $endif$
 %
 % captions
 %
-\definecolor{caption-color}{HTML}{7030A0}
+\definecolor{caption-color}{HTML}{777777}
 $if(beamer)$
 $else$
 \usepackage[font={stretch=1.2}, textfont={color=caption-color}, position=top, skip=4mm, labelfont=bf, singlelinecheck=false, justification=$if(caption-justification)$$caption-justification$$else$raggedright$endif$]{caption}
@@ -691,14 +683,10 @@ $endif$
 %
 % heading color
 %
-\definecolor{heading-color}{HTML}{7030A0}
+\definecolor{heading-color}{RGB}{40,40,40}
 $if(beamer)$
 $else$
-\addtokomafont{section}{\color{heading-color} \fontsize{16pt}{19pt}\selectfont}
-\addtokomafont{subsection}{\color{heading-color} \fontsize{14pt}{17pt}\selectfont}
-\addtokomafont{subsubsection}{\color{heading-color} \fontsize{12pt}{14pt}\selectfont}
-\addtokomafont{paragraph}{\color{heading-color} \fontsize{12pt}{14pt}\selectfont \itshape}
-\addtokomafont{subparagraph}{\color{heading-color} \fontsize{12pt}{14pt}\selectfont \itshape}
+\addtokomafont{section}{\color{heading-color}}
 $endif$
 % When using the classes report, scrreprt, book,
 % scrbook or memoir, uncomment the following line.
@@ -772,50 +760,43 @@ $if(listings)$
 \definecolor{listing-identifier}{HTML}{435489}
 \definecolor{listing-string}{HTML}{00999A}
 \definecolor{listing-comment}{HTML}{8E8E8E}
-\colorlet{punct}{red!60!black}
-\definecolor{delim}{RGB}{20,105,176}
-\colorlet{numb}{magenta!60!black}
 
 \lstdefinestyle{eisvogel_listing_style}{
+  language         = java,
 $if(listings-disable-line-numbers)$
-  xleftmargin       = 0.6em,
-  framexleftmargin  = 0.4em,
+  xleftmargin      = 0.6em,
+  framexleftmargin = 0.4em,
 $else$
-  numbers           = left,
-  xleftmargin       = 2.7em,
-  framexleftmargin  = 2.5em,
+  numbers          = left,
+  xleftmargin      = 2.7em,
+  framexleftmargin = 2.5em,
 $endif$
-  backgroundcolor   = \color{listing-background},
-  basicstyle        = \color{listing-text-color}\linespread{1.2}$if(code-block-font-size)$$code-block-font-size$$else$\footnotesize$endif$\ttfamily{},
-  breaklines        = true,
-  breakatwhitespace = true,
-  breakautoindent   = true,
-  linewidth         = \textwidth,
-  frame             = single,
-  framesep          = 0.19em,
-  rulecolor         = \color{listing-rule},
-  frameround        = ffff,
-  tabsize           = 2,
-  numberstyle       = \color{listing-numbers},
-  numbersep         = 5pt,
-  aboveskip         = 1.0em,
-  belowskip         = 0.1em,
-  abovecaptionskip  = 0em,
-  belowcaptionskip  = 1.0em,
-  keywordstyle      = {\color{listing-keyword}\bfseries},
-  keywordstyle      = {[2]\color{listing-keyword-2}\bfseries},
-  keywordstyle      = {[3]\color{listing-keyword-3}\bfseries\itshape},
-  sensitive         = true,
-  showspaces        = false,
-  showstringspaces  = false,
-  showtabs          = false,
-  captionpos        = b,
-  identifierstyle   = \color{listing-identifier},
-  commentstyle      = \color{listing-comment},
-  stringstyle       = \color{listing-string},
-  showstringspaces  = false,
-  escapeinside      = {/*@}{@*/}, % Allow LaTeX inside these special comments
-  literate          =
+  backgroundcolor  = \color{listing-background},
+  basicstyle       = \color{listing-text-color}\linespread{1.0}%
+                      \lst@ifdisplaystyle%
+                      $if(code-block-font-size)$$code-block-font-size$$else$\small$endif$%
+                      \fi\ttfamily{},
+  breaklines       = true,
+  frame            = single,
+  framesep         = 0.19em,
+  rulecolor        = \color{listing-rule},
+  frameround       = ffff,
+  tabsize          = 4,
+  numberstyle      = \color{listing-numbers},
+  aboveskip        = 1.0em,
+  belowskip        = 0.1em,
+  abovecaptionskip = 0em,
+  belowcaptionskip = 1.0em,
+  keywordstyle     = {\color{listing-keyword}\bfseries},
+  keywordstyle     = {[2]\color{listing-keyword-2}\bfseries},
+  keywordstyle     = {[3]\color{listing-keyword-3}\bfseries\itshape},
+  sensitive        = true,
+  identifierstyle  = \color{listing-identifier},
+  commentstyle     = \color{listing-comment},
+  stringstyle      = \color{listing-string},
+  showstringspaces = false,
+  escapeinside     = {/*@}{@*/}, % Allow LaTeX inside these special comments
+  literate         =
   {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
   {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
   {à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
@@ -883,121 +864,6 @@ $endif$
   stringstyle     = \color{listing-string},
   identifierstyle = \color{listing-identifier}
 }
-
-\lstdefinelanguage{JSON}{
-  basicstyle=\footnotesize\sffamily,
-  numberstyle=\scriptsize,
-  showstringspaces=false,
-  breaklines=true,
-  frame=single,
-  literate=
-  *{0}{{{\color{numb}0}}}{1}
-  {1}{{{\color{numb}1}}}{1}
-  {2}{{{\color{numb}2}}}{1}
-  {3}{{{\color{numb}3}}}{1}
-  {4}{{{\color{numb}4}}}{1}
-  {5}{{{\color{numb}5}}}{1}
-  {6}{{{\color{numb}6}}}{1}
-  {7}{{{\color{numb}7}}}{1}
-  {8}{{{\color{numb}8}}}{1}
-  {9}{{{\color{numb}9}}}{1}
-  {:}{{{\color{punct}{:}}}}{1}
-  {,}{{{\color{punct}{,}}}}{1}
-  {\{}{{{\color{delim}{\{}}}}{1}
-  {\}}{{{\color{delim}{\}}}}}{1}
-  {[}{{{\color{delim}{[}}}}{1}
-  {]}{{{\color{delim}{]}}}}{1}
-}
-
-\lstdefinelanguage{HCL}{
-	keywords={true, false, return, OUTPUT},
-	keywordstyle=\color{ForestGreen}\bfseries,
-	ndkeywords={none, var, txt, num, bool, tuple, list, func, value},
-	ndkeywordstyle=\color{BurntOrange}\bfseries,
-	emph={map, where, reduce, print, add, where, do, equals, then, else, thenElse, +, -, /, *, not, addNumbers, is, modifyNumber, modifyFunction, times2, isAwesome, onEach, forEach, mapFunction, SetLEDPower, delay, LedSetup}, %add all included functions here
-	emphstyle={\color{RoyalBlue}},
-	identifierstyle=\color{Aquamarine},
-	sensitive=true,
-	commentstyle=\color{Gray}\ttfamily,
-	comment=[l]{\#},
-	stringstyle=\color{black}\ttfamily,
-	morestring=[b]"
-}
-
-\lstdefinelanguage{CSharp}{
-  sensitive=true,
-  morekeywords=[1]{abstract,as,base,break,case,catch,checked,%
-    class,const,continue,default,delegate,do,else,enum,event,%
-    explicit,extern,false,finally,fixed,for,foreach,goto,if,%
-    implicit,in,interface,internal,is,lock,namespace,new,null,%
-    operator,out,override,params,private,protected,public,%
-    readonly,ref,return,sealed,sizeof,stackalloc,static,%
-    struct,switch,this,throw,true,try,typeof,unchecked,unsafe,%
-    using,virtual,volatile,while,bool,byte,char,decimal,%
-    double,float,int,lock,object,sbyte,short,string,uint,%
-    ulong,ushort,void%
-  },
-  morekeywords=[2]{},
-  morekeywords=[3]{dictionary,Dictionary,StopWordTool,Math,math,%
-    List,list,KeyValuePair%
-  },
-  morekeywords=[4]{},
-  morecomment=[l]{//},
-  morecomment=[s]{/*}{*/},
-  morecomment=[l][keywordstyle4]{\#},
-  morestring=[b]",
-  morestring=[b]'
-}
-
-\lstdefinelanguage{powershell}{
-	morekeywords={Add-Content,Add-PSSnapin,Clear-Content,%
-    Clear-History,Clear-Host,Clear-Item,%
-    Clear-ItemProperty,Clear-Variable,%
-    Compare-Object,Connect-PSSession,ConvertFrom-String,%
-    Convert-Path,Copy-Item,Copy-ItemProperty,%
-    Disable-PSBreakpoint,Disconnect-PSSession,%
-    Enable-PSBreakpoint,Enter-PSSession,Exit-PSSession,%
-    Export-Alias,Export-Csv,Export-PSSession,ForEach-Object,%
-    Format-Custom,Format-Hex,Format-List,Format-Table,%
-    Format-Wide,Get-Alias,Get-ChildItem,Get-Clipboard,%
-    Get-Command,Get-ComputerInfo,Get-Content,Get-History,%
-    Get-Item,Get-ItemProperty,Get-ItemPropertyValue,Get-Job,%
-    Get-Location,Get-Member,Get-Module,Get-Process,%
-    Get-PSBreakpoint,Get-PSCallStack,Get-PSDrive,Get-PSSession,%
-    Get-PSSnapin,Get-Service,Get-TimeZone,Get-Unique,Get-Variable,%
-    Get-WmiObject,Group-Object,help,Import-Alias,Import-Csv,%
-    Import-Module,Import-PSSession,Invoke-Command,Invoke-Expression,%
-    Invoke-History,Invoke-Item,Invoke-RestMethod,Invoke-WebRequest,%
-    Invoke-WmiMethod,Measure-Object,mkdir,Move-Item,Move-ItemProperty,%
-    New-object,New-Alias,New-Item,New-Module,New-PSDrive,New-PSSession,%
-    New-PSSessionConfigurationFile,New-Variable,Out-GridView,%
-    Out-Host,Out-Printer,Pop-Location,powershell_ise.exe,%
-    Push-Location,Receive-Job,Receive-PSSession,Remove-Item,%
-    Remove-ItemProperty,Remove-Job,Remove-Module,Remove-PSBreakpoint,%
-    Remove-PSDrive,Remove-PSSession,Remove-PSSnapin,Remove-Variable,%
-    Remove-WmiObject,Rename-Item,Rename-ItemProperty,Resolve-Path,%
-    Resume-Job,Select-Object,Select-String,Set-Alias,Set-Clipboard,%
-    Set-Content,Set-Item,Set-ItemProperty,Set-Location,%
-    Set-PSBreakpoint,Set-TimeZone,Set-Variable,Set-WmiInstance,%
-    Show-Command,Sort-Object,Start-Job,Start-Process,Start-Service,%
-    Start-Sleep,Stop-Job,Stop-Process,Stop-Service,Suspend-Job,%
-    Tee-Object,Trace-Command,Wait-Job,Where-Object,Write-Output%
-	},
-  morekeywords={do,else,elseif,for,foreach,function,if,in,until,while,%
-    ForEach-Object,Install-Module,Find-Module,Connect-AzAccount,%
-    Get-AzAdServicePrincipal,Get-AzAccessToken,Read-Host,%
-    ShouldProcess,throw,replace,ConvertTo-Json,ConvertFrom-Json,%
-    pscustomobject,bool,string,Write-Host,Write-Warning,New-Guid%
-  },
-	alsodigit={-},
-	sensitive=false,
-	morecomment=[l]{\#},
-	morecomment=[n]{<\#}{\#>},
-	morestring=[b]{"},
-	morestring=[b]{'},
-	morestring=[s]{@'}{'@},
-	morestring=[s]{@"}{"@}
-}
 $endif$
 
 %
@@ -1007,30 +873,17 @@ $if(beamer)$
 $else$
 $if(disable-header-and-footer)$
 $else$
-\usepackage{fancyhdr}
-\usepackage{lastpage}
-\setlength{\headheight}{36pt}
-\setlength{\footskip}{20pt}
-\fancypagestyle{eisvogel-header-footer}{
-  \fancyhf{}
-  $if(logo)$
-  \fancyhf[LH]{\raisebox{0.5cm}{\includegraphics[width=3cm]{$logo$}}}
-  $endif$
-  $if(date)$
-  \fancyhf[RH]{\fontsize{8pt}{10pt}\selectfont $date$\\ }
-  $endif$
-  \fancyhf[CH]{\fontsize{8pt}{10pt}\selectfont $if(project)$Project $project$$endif$$if(author)$\\$for(author)$$author$$sep$, $endfor$$endif$}
-  $if(footer-left)$
-  \fancyhf[LF]{\fontsize{8pt}{10pt}\selectfont $footer-left$}
-  $endif$
-  $if(page-numbers)$
-  \fancyhf[CF]{\fontsize{8pt}{10pt}\selectfont Page (\thepage) of \pageref{LastPage}}
-  $endif$
-  $if(footer-right)$
-  \fancyhf[RF]{\fontsize{8pt}{10pt}\selectfont $footer-right$}
-  $endif$
-  \renewcommand{\headrulewidth}{0pt}
-  \renewcommand{\footrulewidth}{0pt}
+\usepackage[headsepline,footsepline]{scrlayer-scrpage}
+
+\newpairofpagestyles{eisvogel-header-footer}{
+  \clearpairofpagestyles
+  \ihead*{$if(header-left)$$header-left$$else$$title$$endif$}
+  \chead*{$if(header-center)$$header-center$$else$$endif$}
+  \ohead*{$if(header-right)$$header-right$$else$$date$$endif$}
+  \ifoot*{$if(footer-left)$$footer-left$$else$$for(author)$$author$$sep$, $endfor$$endif$}
+  \cfoot*{$if(footer-center)$$footer-center$$else$$endif$}
+  \ofoot*{$if(footer-right)$$footer-right$$else$\thepage$endif$}
+  \addtokomafont{pageheadfoot}{\upshape}
 }
 \pagestyle{eisvogel-header-footer}
 
@@ -1054,26 +907,7 @@ $endif$
 $endif$
 
 %%
-%% end header and footer
-%%
-
-%%
-%% begin set bullet style
-%%
-\usepackage{enumitem}
-\setlistdepth{9}
-\setlist[itemize,1]{label=$$\bullet$$,font=\fontsize{10pt}{12pt}\selectfont}
-\setlist[itemize,2]{label=$$\circ$$,font=\fontsize{14pt}{17pt}\selectfont}
-\setlist[itemize,3]{label=$$\blacksquare$$,font=\fontsize{4pt}{6pt}\selectfont}
-\setlist[itemize,4]{label=$$\star$$}
-\setlist[itemize,5]{label=$$\diamond$$}
-\setlist[itemize,6]{label=$$\ast$$}
-\setlist[itemize,7]{label=$$\star$$}
-\setlist[itemize,8]{label=$$\ast$$}
-\setlist[itemize,9]{label=$$\star$$}
-\renewlist{itemize}{itemize}{9}
-%%
-%% end set bullet style
+%% end added
 %%
 
 \begin{document}
@@ -1088,7 +922,7 @@ $if(titlepage)$
 $if(titlepage-background)$
 \newgeometry{top=2cm, right=4cm, bottom=3cm, left=4cm}
 $else$
-\newgeometry{left=3cm, right=2cm, bottom=1.5cm}
+\newgeometry{left=6cm}
 $endif$
 $if(titlepage-color)$
 \definecolor{titlepage-color}{HTML}{$titlepage-color$}
@@ -1102,14 +936,9 @@ $endif$
 \noindent
 \\[-1em]
 \color[HTML]{$if(titlepage-text-color)$$titlepage-text-color$$else$5F5F5F$endif$}
+\makebox[0pt][l]{\colorRule[$if(titlepage-rule-color)$$titlepage-rule-color$$else$435488$endif$]{1.3\textwidth}{$if(titlepage-rule-height)$$titlepage-rule-height$$else$4$endif$pt}}
 \par
 \noindent
-
-$if(titlepage-top-cover-image)$
-\noindent
-\vskip -3em
-\includegraphics{$titlepage-top-cover-image$}
-$endif$
 
 $if(titlepage-background)$
 % The titlepage with a background image has other text spacing and text size
@@ -1117,37 +946,39 @@ $if(titlepage-background)$
   \setstretch{2}
   \vfill
   \vskip -8em
-  \textcolor{titlecolor}{\noindent {\fontsize{36pt}{42pt}\selectfont $title$}}
+  \noindent {\huge \textbf{\textsf{$title$}}}
   $if(subtitle)$
-  \vskip 2em
-  \textcolor{subtitlecolor}{{\fontsize{14pt}{17pt}\selectfont $subtitle$}}
+  \vskip 1em
+  {\Large \textsf{$subtitle$}}
   $endif$
-  \vskip 0em
-  \textcolor{authorcolor}{\noindent {\fontsize{12pt}{14pt}\selectfont $for(author)$$author$$sep$, $endfor$ \vskip 0.6em $date$}}
+  \vskip 2em
+  \noindent {\Large \textsf{$for(author)$$author$$sep$, $endfor$} \vskip 0.6em \textsf{$date$}}
   \vfill
 }
 $else$
 {
   \setstretch{1.4}
   \vfill
-  \vskip 14em
-  \textcolor{titlecolor}{\noindent {\fontsize{36pt}{42pt}\selectfont $title$}}
+  \noindent {\huge \textbf{\textsf{$title$}}}
   $if(subtitle)$
-  \vskip 2em
-  \textcolor{subtitlecolor}{{\fontsize{14pt}{17pt}\selectfont $subtitle$}}
+  \vskip 1em
+  {\Large \textsf{$subtitle$}}
   $endif$
-  \vskip -1em
-  \textcolor{authorcolor}{\noindent {\fontsize{12pt}{14pt}\selectfont $for(author)$$author$$sep$, $endfor$}}
+  \vskip 2em
+  \noindent {\Large \textsf{$for(author)$$author$$sep$, $endfor$}}
   \vfill
 }
 $endif$
 
-$if(disclaimer)$
-\vskip 21em
-\setstretch{1.0}
-\textcolor{disclaimercolor}{\noindent {\fontsize{8pt}{10pt}\selectfont $disclaimer$}}
+$if(titlepage-logo)$
+\noindent
+\includegraphics[width=$if(logo-width)$$logo-width$$else$35mm$endif$, left]{$titlepage-logo$}
 $endif$
 
+$if(titlepage-background)$
+$else$
+\textsf{$date$}
+$endif$
 \end{flushleft}
 \end{titlepage}
 \restoregeometry
@@ -1181,53 +1012,11 @@ $if(first-chapter)$
 \addtocounter{chapter}{-1}
 $endif$
 
-%%
-%% begin version history
-%%
-$if(version-history)$
-\hypertarget{version-history}{%
-\section{Version history}\label{version-history}}
-
-\begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1200}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2500}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.4300}}@{}}
-\toprule()
-\begin{minipage}[b]{\linewidth}\raggedright
-\textbf{Version}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
-\textbf{Date}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
-\textbf{Author}
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
-\textbf{Description}
-\end{minipage} \\
-\midrule()
-\endhead
-$for(version-history)$
-$if(version-history.version)$
-$version-history.version$ & $if(version-history.date)$$version-history.date$$endif$ & $if(version-history.author)$$version-history.author$$endif$ & $if(version-history.description)$$version-history.description$$endif$ \\
-$else$
-1.0.0 & $date$ & $for(author)$$author$$sep$ \and $endfor$ & Initial draft \\
-$endif$
-$endfor$
-\bottomrule()
-\end{longtable}
-$endif$
-
-%%
-%% end versionhistory
-%%
-
 $for(include-before)$
 $include-before$
 
 $endfor$
 $if(toc)$
-$if(toc-own-page)$
-\newpage
-$endif$
 $if(toc-title)$
 \renewcommand*\contentsname{$toc-title$}
 $endif$

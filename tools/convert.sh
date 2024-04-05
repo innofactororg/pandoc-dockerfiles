@@ -143,7 +143,7 @@ process_params() {
         shift 2
         ;;
       -f|--folder)
-        DocsPath=$(test_arg fail '' "$@")
+        DocsPath="${2}"
         shift 2
         ;;
       --force-default)
@@ -211,7 +211,7 @@ process_params() {
   done
 }
 Columns=72
-DocsPath='docs'
+DocsPath=''
 FirstChangeDescription='Initial draft'
 GitLogLimit=15
 HistoryFile=''
@@ -234,6 +234,9 @@ fi
 currentPath=$(pwd)
 if test -z "${OutFolder}"; then
   OutFolder=$currentPath
+fi
+if test -z "${DocsPath}"; then
+  DocsPath=$currentPath
 fi
 # Ensure OutFile has full path
 if ! echo "${OutFile}" | grep -Eq '^[a-zA-Z]:\\.*' && ! echo "${OutFile}" | grep -Eq '^/.*'; then

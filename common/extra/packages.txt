@@ -13,50 +13,50 @@ trimspaces
 #########################################################################
 # Required by eisvogel template
 # see https://github.com/Wandmalfarbe/pandoc-latex-template/blob/master/.github/workflows/build-examples.yml
-abstract
+#abstract
 adjustbox
-awesomebox
+#awesomebox
 #babel-german
 background
 bidi
-catchfile
-collectbox
+#catchfile
+#collectbox
 csquotes
-everypage
-filehook
-fontawesome5
+#everypage
+#filehook
+#fontawesome5
 footmisc
 footnotebackref
-framed
+#framed
 fvextra
-hardwrap
-incgraph
-letltxmacro
-lineno
-listingsutf8
-ly1
-koma-script
+#hardwrap
+#incgraph
+#letltxmacro
+#lineno
+#listingsutf8
+#ly1
+#koma-script
 mdframed
-mweights
-needspace
+#mweights
+#needspace
 pagecolor
-sectsty
+#sectsty
 sourcecodepro
 sourcesanspro
-titlesec
+#titlesec
 titling
-transparent
-ucharcat
-ulem
+#transparent
+#ucharcat
+#ulem
 unicode-math
 upquote
 xecjk
 xurl
-zref
+#zref
 
 #########################################################################
 # Completes Source family
-sourceserifpro
+#sourceserifpro
 
 #########################################################################
 # Required by Beamer/Metropolis
