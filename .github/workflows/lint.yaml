@@ -1,6 +1,7 @@
 name: Tidy
 
 on:
+  workflow_dispatch:
   push:
     # Run every time a shell script changes
     paths:
