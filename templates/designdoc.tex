@@ -376,7 +376,10 @@ $endif$
 \usepackage{fancyhdr}
 \usepackage{lastpage}
 \usepackage{amsfonts}
+\WarningFilter[temp]{latex}{Command \underbar} % silence warning from sectsty
+\WarningFilter[temp]{latex}{Command \underline} % silence warning from sectsty
 \usepackage{sectsty}
+\DeactivateWarningFilters[temp] % So nothing unrelated gets silenced
 \sectionfont{\clearpage}
 $if(graphics)$
 \usepackage{graphicx}

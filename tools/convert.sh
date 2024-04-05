@@ -210,20 +210,20 @@ process_params() {
     esac
   done
 }
-MainAuthor='Innofactor'
-FirstChangeDescription='Initial draft'
-DocsPath='docs'
-SkipGitCommitHistory='false'
-HistoryFile=''
-GitLogLimit=15
 Columns=72
+DocsPath='docs'
+FirstChangeDescription='Initial draft'
+GitLogLimit=15
+HistoryFile=''
 InputFile='document.order'
-InputFormat='markdown+alerts+backtick_code_blocks+escaped_line_breaks+footnotes+implicit_header_references+inline_notes+line_blocks+space_in_atx_header+table_captions+grid_tables+pipe_tables+task_lists+yaml_metadata_block'
+InputFormat='markdown+backtick_code_blocks+escaped_line_breaks+footnotes+implicit_header_references+inline_notes+line_blocks+space_in_atx_header+table_captions+grid_tables+pipe_tables+task_lists+yaml_metadata_block'
+MainAuthor='Innofactor'
 OutFile='document.pdf'
 OutFolder=''
 PDFEngine='xelatex'
 Project=''
 ReplaceFile=''
+SkipGitCommitHistory='false'
 Subtitle=''
 Template='designdoc'
 Title=''
@@ -270,6 +270,64 @@ elif [ "$(printf '%s' "${inputFilePath}" | tail -c 3)" = '.md' ]; then
 else
   mdOutFile="$(echo "$OutFile" | sed 's/.pdf$//g').md"
 fi
+currentDate=$(date "+%B %d, %Y")
+templateCoverFilePath=$(get_file_path "${Template}-cover.png" "${DocsPath}")
+if ! test -f "${templateCoverFilePath}"; then
+  templateCoverFilePath=$(get_file_path "$(echo "$templateFilePath" | sed 's/.tex$//g')-cover.png" '')
+  if [ "${Template}" = 'designdoc' ] && ! test -f "${templateCoverFilePath}"; then
+    error '' "Unable to find template cover file ${templateCoverFilePath}" 1
+  fi
+fi
+templateLogoFilePath=$(get_file_path "${Template}-logo.png" "${DocsPath}")
+if ! test -f "${templateLogoFilePath}"; then
+  templateLogoFilePath=$(get_file_path "$(echo "$templateFilePath" | sed 's/.tex$//g')-logo.png" '')
+  if [ "${Template}" = 'designdoc' ] && ! test -f "${templateLogoFilePath}"; then
+    error '' "Unable to find template logo file ${templateLogoFilePath}" 1
+  fi
+fi
+metaFilePathFixed="${OutFolder}/metadata_fixed.json"
+metaFilePath=$(get_file_path "${Template}-metadata.json" "${DocsPath}")
+if ! test -f "${metaFilePath}"; then
+  metaFilePath=$(get_file_path 'metadata.json' "${DocsPath}")
+  if ! test -f "${metaFilePath}"; then
+    metaFilePath=$(get_file_path "${Template}-metadata.json" "$(dirname "${templateFilePath}")")
+    if ! test -f "${metaFilePath}"; then
+      metaFilePath=$(get_file_path 'metadata.json' "$(dirname "${templateFilePath}")")
+    fi
+  fi
+fi
+if ! test -f "${metaFilePath}"; then
+  metaFilePath="${OutFolder}/metadata.json"
+fi
+info 'Inputs and calculated values:'
+info "- Columns:                ${Columns}"
+info "- CurrentDate:            ${currentDate}"
+info "- CurrentPath:            ${currentPath}"
+info "- DocsPath:               ${DocsPath}"
+info "- FirstChangeDescription: ${FirstChangeDescription}"
+info "- GitLogLimit:            ${GitLogLimit}"
+info "- HistoryFile:            ${HistoryFile}"
+info "- HistoryFilePath:        ${historyFilePath}"
+info "- InputFile:              ${InputFile}"
+info "- InputFilePath:          ${inputFilePath}"
+info "- InputFormat:            ${InputFormat}"
+info "- MainAuthor:             ${MainAuthor}"
+info "- MetaFilePath:           ${metaFilePath}"
+info "- metaFilePathFixed:      ${metaFilePathFixed}"
+info "- OutFile:                ${OutFile}"
+info "- OutFile markdown:       ${mdOutFile}"
+info "- OutFolder:              ${OutFolder}"
+info "- PDFEngine:              ${PDFEngine}"
+info "- Project:                ${Project}"
+info "- ReplaceFile:            ${ReplaceFile}"
+info "- ReplaceFilePath:        ${replaceFilePath}"
+info "- SkipGitCommitHistory:   ${SkipGitCommitHistory}"
+info "- Subtitle:               ${Subtitle}"
+info "- Template:               ${Template}"
+info "- TemplateFilePath:       ${templateFilePath}"
+info "- TemplateCoverFilePath:  ${templateCoverFilePath}"
+info "- TemplateLogoFilePath:   ${templateLogoFilePath}"
+info "- Title:                  ${Title}"
 if [ "$(printf '%s' "${inputFilePath}" | tail -c 6)" = '.order' ]; then
   info "Merge markdown files in ${inputFilePath}"
   printf '%s\n' "$(cat "${inputFilePath}")" | while read -r line; do
@@ -312,41 +370,11 @@ if test -n "${ReplaceFile}"; then
   done
   mdContent="$(cat "${mdOutFile}")"
 fi
-currentDate=$(date "+%B %d, %Y")
-templateCoverFilePath=$(get_file_path "${Template}-cover.png" "${DocsPath}")
-if ! test -f "${templateCoverFilePath}"; then
-  templateCoverFilePath=$(get_file_path "$(echo "$templateFilePath" | sed 's/.tex$//g')-cover.png" '')
-  if [ "${Template}" = 'designdoc' ] && ! test -f "${templateCoverFilePath}"; then
-    error '' "Unable to find template cover file ${templateCoverFilePath}" 1
-  fi
-fi
-templateLogoFilePath=$(get_file_path "${Template}-logo.png" "${DocsPath}")
-if ! test -f "${templateLogoFilePath}"; then
-  templateLogoFilePath=$(get_file_path "$(echo "$templateFilePath" | sed 's/.tex$//g')-logo.png" '')
-  if [ "${Template}" = 'designdoc' ] && ! test -f "${templateLogoFilePath}"; then
-    error '' "Unable to find template logo file ${templateLogoFilePath}" 1
-  fi
-fi
 if test -n "${mdContent}"; then
-  metaFilePathFixed="${OutFolder}/metadata_fixed.json"
-  metaFilePath=$(get_file_path "${Template}-metadata.json" "${DocsPath}")
-  if ! test -f "${metaFilePath}"; then
-    metaFilePath=$(get_file_path 'metadata.json' "${DocsPath}")
-    if ! test -f "${metaFilePath}"; then
-      metaFilePath=$(get_file_path "${Template}-metadata.json" "$(dirname "${templateFilePath}")")
-      if ! test -f "${metaFilePath}"; then
-        metaFilePath=$(get_file_path 'metadata.json' "$(dirname "${templateFilePath}")")
-      fi
-    fi
-  fi
   info "The markdown contains ${#mdContent} characters"
   if ! [ "$(printf '%s' "${OutFile}" | tail -c 3)" = '.md' ]; then
     # If meta data file is not present in docs folder, create it
     if ! test -f "${metaFilePath}"; then
-      metaFilePath="${OutFolder}/metadata.json"
-      info 'Get version history'
-      versionHistory=$(get_version_history)
-      authors="[$(echo "${versionHistory}" | jq '.[].author' | uniq | sed ':a; N; $!ba; s/\n/,/g')]"
       set_metadataContent <<META_DATA || true
 {
   "block-headings": true,
@@ -378,8 +406,13 @@ if test -n "${mdContent}"; then
   "toc-title": "Table of Contents"
 }
 META_DATA
+      info "set metadataContent"
       printf '%s\n' "${metadataContent}" | jq '.' > "${metaFilePath}"
+      info "done metadataContent"
     fi
+    info 'Get version history'
+    versionHistory=$(get_version_history)
+    authors="[$(echo "${versionHistory}" | jq '.[].author' | uniq | sed ':a; N; $!ba; s/\n/,/g')]"
     set_metadataContentFixed <<META_DATA_FIXED || true
 {
   "author": ${authors},
@@ -387,9 +420,9 @@ META_DATA
 }
 META_DATA_FIXED
     printf '%s\n' "${metadataContentFixed}" | jq '.' > "${metaFilePathFixed}"
-    info "Create ${OutFile}"
     # Change to the docs path so image paths can be relative
     cd "${DocsPath}"
+    info "Create ${OutFile}"
     printf '%s' "${mdContent}" | pandoc \
       --columns="${Columns}" \
       --dpi=300 \
