@@ -195,14 +195,19 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir \
     python-dotenv \
     Office365-REST-Python-Client
 
-# Install eisvogel template
 ARG TEMPLATES_DIR=/.pandoc/templates
+ARG TOOLS_DIR=/.pandoc/tools
 
 RUN mkdir -p ${TEMPLATES_DIR} && \
     ln -s /.pandoc /root/.pandoc
 
+COPY templates/ ${TEMPLATES_DIR}/
+
+# Get eisvogel template
 ARG EISVOGEL_REPO=https://raw.githubusercontent.com/Wandmalfarbe/pandoc-latex-template
 ARG EISVOGEL_VERSION=2.4.2
 RUN curl -sSL --retry 4 -o ${TEMPLATES_DIR}/eisvogel.latex ${EISVOGEL_REPO}/${EISVOGEL_VERSION}/eisvogel.tex
+
+COPY --chmod=555 tools/convert.sh ${TOOLS_DIR}/
 
 CMD [ "node" ]
