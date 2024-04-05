@@ -268,7 +268,7 @@ if [ "$(printf '%s' "${OutFile}" | tail -c 3)" = '.md' ]; then
 elif [ "$(printf '%s' "${inputFilePath}" | tail -c 3)" = '.md' ]; then
   mdOutFile="${inputFilePath}"
 else
-  mdOutFile="${OutFile/.pdf/}.md"
+  mdOutFile="$(echo "$OutFile" | sed 's/.pdf$//g').md"
 fi
 if [ "$(printf '%s' "${inputFilePath}" | tail -c 6)" = '.order' ]; then
   info "Merge markdown files in ${inputFilePath}"
@@ -315,14 +315,14 @@ fi
 currentDate=$(date "+%B %d, %Y")
 templateCoverFilePath=$(get_file_path "${Template}-cover.png" "${DocsPath}")
 if ! test -f "${templateCoverFilePath}"; then
-  templateCoverFilePath=$(get_file_path "${templateFilePath/.tex/}-cover.png" '')
+  templateCoverFilePath=$(get_file_path "$(echo "$templateFilePath" | sed 's/.tex$//g')-cover.png" '')
   if [ "${Template}" = 'designdoc' ] && ! test -f "${templateCoverFilePath}"; then
     error '' "Unable to find template cover file ${templateCoverFilePath}" 1
   fi
 fi
 templateLogoFilePath=$(get_file_path "${Template}-logo.png" "${DocsPath}")
 if ! test -f "${templateLogoFilePath}"; then
-  templateLogoFilePath=$(get_file_path "${templateFilePath/.tex/}-logo.png" '')
+  templateLogoFilePath=$(get_file_path "$(echo "$templateFilePath" | sed 's/.tex$//g')-logo.png" '')
   if [ "${Template}" = 'designdoc' ] && ! test -f "${templateLogoFilePath}"; then
     error '' "Unable to find template logo file ${templateLogoFilePath}" 1
   fi
@@ -333,9 +333,9 @@ if test -n "${mdContent}"; then
   if ! test -f "${metaFilePath}"; then
     metaFilePath=$(get_file_path 'metadata.json' "${DocsPath}")
     if ! test -f "${metaFilePath}"; then
-      metaFilePath=$(get_file_path "${Template}-metadata.json" "$(dirname ${templateFilePath})")
+      metaFilePath=$(get_file_path "${Template}-metadata.json" "$(dirname "${templateFilePath}")")
       if ! test -f "${metaFilePath}"; then
-        metaFilePath=$(get_file_path 'metadata.json' "$(dirname ${templateFilePath})")
+        metaFilePath=$(get_file_path 'metadata.json' "$(dirname "${templateFilePath}")")
       fi
     fi
   fi
@@ -391,22 +391,22 @@ META_DATA_FIXED
     # Change to the docs path so image paths can be relative
     cd "${DocsPath}"
     printf '%s' "${mdContent}" | pandoc \
-      --columns=${Columns} \
+      --columns="${Columns}" \
       --dpi=300 \
       --filter pandoc-latex-environment \
-      --from=${InputFormat} \
+      --from="${InputFormat}" \
       --standalone \
       --listings \
-      --metadata=date:${currentDate} \
-      --metadata=logo:${templateLogoFilePath} \
-      --metadata=project:${Project} \
-      --metadata=subtitle:${Subtitle} \
-      --metadata=title:${Title} \
-      --metadata=titlepage-top-cover-image:${templateCoverFilePath} \
+      --metadata=date:"${currentDate}" \
+      --metadata=logo:"${templateLogoFilePath}" \
+      --metadata=project:"${Project}" \
+      --metadata=subtitle:"${Subtitle}" \
+      --metadata=title:"${Title}" \
+      --metadata=titlepage-top-cover-image:"${templateCoverFilePath}" \
       --metadata-file="${metaFilePath}" \
       --metadata-file="${metaFilePathFixed}" \
       --output="${OutFile}" \
-      --pdf-engine=${PDFEngine} \
+      --pdf-engine="${PDFEngine}" \
       --template="${templateFilePath}"
     cd "${currentPath}"
   fi
