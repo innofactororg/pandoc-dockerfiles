@@ -18,7 +18,7 @@ jobs:
       - name: Configure build
         id: config
         run: |
-          versions="'3.1.12'"
+          versions="'3.1.13'"
           pandoc_versions="[${versions}]"
           stacks="'alpine'"
           stacks="[${stacks}]"
@@ -66,7 +66,7 @@ jobs:
       - name: Create freeze file on fail
         if: failure()
         run: |
-          export PANDOC_VERSION=3.1.12
+          export PANDOC_VERSION=3.1.13
           export CREATE_FREEZE_FILE=true
           make alpine-freeze-file
 
@@ -77,7 +77,7 @@ jobs:
           if-no-files-found: error
           name: freeze-file
           retention-days: 3
-          path: ${{ github.workspace }}/alpine/freeze/pandoc-3.1.12.project.freeze
+          path: ${{ github.workspace }}/alpine/freeze/pandoc-3.1.13.project.freeze
 
       - name: Test extra image
         if: ${{ matrix.stack != 'static' }}

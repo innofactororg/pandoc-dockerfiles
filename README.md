@@ -66,7 +66,7 @@ Basic Usage
    convert to HTML.
 
    ```sh
-   docker run --rm --volume "`pwd`:/data" --entrypoint /usr/local/bin/pandoc --user `id -u`:`id -g` ghcr.io/innofactororg/pandoc-extra:3.1.12-alpine README.md
+   docker run --rm --volume "`pwd`:/data" --entrypoint /usr/local/bin/pandoc --user `id -u`:`id -g` ghcr.io/innofactororg/pandoc-extra:3.1.13-alpine README.md
    ```
 
    The `--volume` flag maps some directory on *your machine* (lefthand side of
@@ -79,14 +79,14 @@ Basic Usage
    It is hence a good idea to specify for docker the user and group IDs to use
    via the `--user` flag.
 
-   `ghcr.io/innofactororg/pandoc-extra:3.1.12-alpine` declares the image that
+   `ghcr.io/innofactororg/pandoc-extra:3.1.13-alpine` declares the image that
    you're going to run. It's always a good idea to hardcode the version, lest
    future releases break your code.
 
    It may look weird to you that you can just add `README.md` at the end of this
-   line, but that's just because the `ghcr.io/innofactororg/pandoc-extra:3.1.12-alpine`
+   line, but that's just because the `ghcr.io/innofactororg/pandoc-extra:3.1.13-alpine`
    will simply prepend `pandoc` in front of anything you write after
-   `ghcr.io/innofactororg/pandoc-extra:3.1.12-alpine` (this is known as the
+   `ghcr.io/innofactororg/pandoc-extra:3.1.13-alpine` (this is known as the
    `ENTRYPOINT` field of the Dockerfile). So what you're really running here is
    `pandoc README.md`, which is a valid pandoc command.
 
@@ -130,7 +130,7 @@ You only have to do this once for each script file.
 You can then run the completed script file in a pandoc docker container like so:
 
 ```sh
-docker run --rm --volume "`pwd`:/data" --entrypoint "/data/script.sh" ghcr.io/innofactororg/pandoc-extra:3.1.12-alpine
+docker run --rm --volume "`pwd`:/data" --entrypoint "/data/script.sh" ghcr.io/innofactororg/pandoc-extra:3.1.13-alpine
 ```
 
 Notice that the above `script.sh` *did* specify `pandoc`, and you can't just
