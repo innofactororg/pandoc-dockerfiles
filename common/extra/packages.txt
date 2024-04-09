@@ -35,7 +35,7 @@ fvextra
 #lineno
 #listingsutf8
 #ly1
-#koma-script
+koma-script
 mdframed
 #mweights
 #needspace
