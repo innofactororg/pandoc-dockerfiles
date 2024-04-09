@@ -32,426 +32,485 @@ info() {
     command printf '\033[36m%s\033[0m\n' "${currentTime} ${1}" 1>&2
   fi
 }
-test_arg() {
-  if [ $# -lt 4 ] || test -z "${4}" || echo "${4}" | grep -Eq '^-.*'; then
-    if [ "${1}" = 'default' ]; then
-      echo "${2}"
-    else
-      error '' "Value not set for argument ${3}" 1
+get_param_shifts() {
+  if [ "${1%%=*}" = "$1" ]; then
+    printf 2
+  else
+    printf 1
+  fi
+}
+get_param_shifts_bool() {
+  if [ "${1%%=*}" = "$1" ] || [ "${1%-}" != "$1" ]; then
+    printf 1
+  else
+    printf 2
+  fi
+}
+set_param_value() {
+  ARG="${1%%=*}"
+  if [ "${ARG}" = "$1" ]; then
+    shift
+    if [ -z "$1" ]; then
+      >&2 echo "You must specify a value for property ${ARG}"
+      return 1
     fi
+    VALUE="$1"
   else
-    echo "${4}"
+    VALUE="${1#*=}"
   fi
+  shift
 }
-test_true_false() {
-  if [ $# -gt 1 ]; then
-    local default="${2}"
+set_param_bool() {
+  ARG="${1%%=*}"
+  if [ "${ARG}" = "$1" ]; then
+    shift
+    VALUE="true"
+  elif [ "${1%-}" != "$1" ]; then
+    shift
+    VALUE="false"
   else
-    local default='false'
-  fi
-  local value
-  value="$(echo "${1}" | awk '{ print tolower($0) }')"
-  if test -z "${value}"; then
-    echo "${default}"
-  elif [ "${value}" = 'true' ] || [ "${value}" = 'yes' ] || [ "${value}" = '1' ]; then
-    echo 'true'
-  elif [ "${value}" = 'false' ] || [ "${value}" = 'no' ] || [ "${value}" = '0' ]; then
-    echo 'false'
-  else
-    echo "${default}"
-  fi
-}
-get_file_path() {
-  if test -z "${1}"; then
-    echo ''
-  elif test -e "${1}"; then
-    readlink -f "${1}"
-  elif test -e "${2}/${1}"; then
-    readlink -f "${2}/${1}"
-  else
-    echo ''
-  fi
-}
-get_version_history() {
-  if test -n "${historyFilePath}"; then
-    if ! test -f "${historyFilePath}"; then
-      error '' "Unable to find history file ${historyFilePath}" 1
+    if [ "${1#*=}" != true ] && [ "${1#*=}" != false ]; then
+      >&2 echo "You must specify true or false for property ${ARG}"
+      return 1
     fi
-    mergeLogs=$(cat "${historyFilePath}")
-  elif [ "${SkipGitCommitHistory}" = 'true' ]; then
-    mergeLogs="tag: rel/repo/1.0.0|${currentDate}|${MainAuthor}|${FirstChangeDescription}"
-  else
-    mergeLogs=$(
-      git --no-pager log "-${GitLogLimit}" --date-order --date=format:'%b %e, %Y' \
-        --no-merges --oneline --pretty=format:'%D|%ad|%an|%s' "${DocsPath}"
-    )
+    VALUE="${1#*=}"
+    shift
   fi
-  if test -z "${mergeLogs}"; then
-    mergeLogs="tag: rel/repo/1.0.0|${currentDate}|${MainAuthor}|${FirstChangeDescription}"
-  fi
-  lineCount=$(echo "${mergeLogs}" | wc -l)
-  historyJson='[]'
-  printf '%s\n' "${mergeLogs}" | while read -r line; do
-    lineCount=$((lineCount-1))
-    version="$(echo "$line" | cut -d'|' -f1 | rev | cut -d'/' -f1 | rev)"
-    if test -z "${version}" || ! echo "${version}" | grep -Eq '^[0-9].*'; then
-      version="1.0.${lineCount}"
-    fi
-    date="$(echo "${line}" | cut -d'|' -f2)"
-    author="$(echo "${line}" | cut -d'|' -f3)"
-    description="$(echo "${line}" | cut -d'|' -f4)"
-    if test -f tmp_history_41231.json; then
-      historyJson=$(jq '.' tmp_history_41231.json)
-    fi
-    printf '%s\n' "${historyJson}" | jq --arg version "${version}" \
-      --arg date "${date}" \
-      --arg author "${author}" \
-      --arg description "${description}" \
-      '. +=[{ version: $version, date: $date, author: $author, description: $description }]' > tmp_history_41231.json
-  done
-  if test -f tmp_history_41231.json; then
-    jq '.' tmp_history_41231.json
-  else
-    printf '%s\n' '[]' | jq --arg version '1.0.0' \
-        --arg date "${currentDate}" \
-        --arg author "${MainAuthor}" \
-        --arg description "${FirstChangeDescription}" \
-        '. +=[{ version: $version, date: $date, author: $author, description: $description }]' > tmp_history_41231.json
-    jq '.' tmp_history_41231.json
-  fi
-  rm -f tmp_history_41231.json
 }
-set_metadataContent() {
-  metadataContent="$(cat)"
-}
-set_metadataContentFixed() {
-  metadataContentFixed="$(cat)"
-}
-process_params() {
-  while [ $# -gt 0 ]; do
+set_InputContent() {
+  local FILE NAME FOLDER CONTENT
+  while [ "$#" -gt 0 ]; do
     case "${1}" in
-      -a|--author)
-        MainAuthor=$(test_arg default 'Innofactor' "$@")
-        shift 2
-        ;;
-      --columns)
-        Columns="${2}"
-        shift 2
-        ;;
-      -d|--description)
-        FirstChangeDescription=$(test_arg default 'Initial draft' "$@")
-        shift 2
-        ;;
-      -f|--folder)
-        DocsPath="${2}"
-        shift 2
-        ;;
-      --force-default)
-        shift
-        if [ $# -eq 0 ] || echo "${1}" | grep -Eq '^-.*'; then
-          SkipGitCommitHistory='true'
-        else
-          SkipGitCommitHistory=$(test_true_false "${1}")
-          shift
-        fi
-        ;;
-      --from)
-        InputFormat="${2}"
-        shift 2
-        ;;
-      -h|--historyfile)
-        HistoryFile=$(test_arg default '' "$@")
-        shift 2
-        ;;
-      -i|--inputfile)
-        InputFile=$(test_arg fail '' "$@")
-        shift 2
-        ;;
-      -l|--gitloglimit)
-        GitLogLimit=$(test_arg default 15 "$@")
-        shift 2
-        ;;
-      -o|--outfile)
-        OutFile=$(test_arg default 'document.pdf' "$@")
-        shift 2
-        ;;
-      --outfolder)
-        OutFolder=$(test_arg default '' "$@")
-        shift 2
-        ;;
-      -p|--project)
-        Project=$(test_arg default '' "$@")
-        shift 2
-        ;;
-      --pdf-engine)
-        PDFEngine=$(test_arg default 'xelatex' "$@")
-        shift 2
-        ;;
-      -r|--replacefile)
-        ReplaceFile=$(test_arg default '' "$@")
-        shift 2
-        ;;
-      -s|--subtitle)
-        Subtitle=$(test_arg default '' "$@")
-        shift 2
-        ;;
-      -t|--title)
-        Title=$(test_arg fail '' "$@")
-        shift 2
-        ;;
-      --template)
-        Template="${2}"
-        shift 2
-        ;;
       *)
-        warning "Unknown parameter: ${1}"
-        exit 1
+        FILE="${1}"
+        shift
+        if [ "$(printf '%s' "${FILE}" | tail -c 3)" = '.md' ]; then
+          FOLDER=$(dirname "$FILE")
+          NAME=$(basename "$FILE")
+          # Get content from file and replace relative links with full links
+          CONTENT=$(
+            printf '%s' "$(sed \
+              -e "s|\(\[.*\](\)\(\../\)\(.*)\)|\1${FOLDER}/\2\3|g" \
+              -e "s|\(\[.*\](\)\(\./\)\(.*)\)|\1${FOLDER}/\3|g" \
+              -e "s|\(\[.*\](\)\(asset\)\(.*)\)|\1${FOLDER}/\2\3|g" \
+              -e "s|\(\[.*\](\)\(attach\)\(.*)\)|\1${FOLDER}/\2\3|g" \
+              -e "s|\(\[.*\](\)\(image\)\(.*)\)|\1${FOLDER}/\2\3|g" \
+              -e "s|\(\[.*\](\)\(\.\)\(.*)\)|\1${FOLDER}/\2\3|g" \
+              "${FILE}")"
+          )
+          if test -n "${CONTENT}"; then
+            info "Found ${#CONTENT} characters in ${NAME}"
+            if test -z "${InputContent}"; then
+              InputContent=$(printf '%s\n' "${CONTENT}")
+            else
+              InputContent=$(printf '%s\n' "${InputContent}\n\n${CONTENT}")
+            fi
+          fi
+        fi
         ;;
     esac
   done
 }
-Columns=72
-DocsPath=''
-FirstChangeDescription='Initial draft'
-GitLogLimit=15
-HistoryFile=''
-InputFile='document.order'
-InputFormat='markdown+backtick_code_blocks+escaped_line_breaks+footnotes+implicit_header_references+inline_notes+line_blocks+space_in_atx_header+table_captions+grid_tables+pipe_tables+task_lists+yaml_metadata_block'
-MainAuthor='Innofactor'
-OutFile='document.pdf'
-OutFolder=''
-PDFEngine='xelatex'
-Project=''
-ReplaceFile=''
-SkipGitCommitHistory='false'
-Subtitle=''
-Template='designdoc'
-Title=''
-process_params "$@"
-if test -z "${Title}"; then
-  error '' 'Missing Title: Value not set for argument --title' 1
-fi
-currentPath=$(pwd)
-if test -z "${OutFolder}"; then
-  OutFolder=$currentPath
-fi
-if test -z "${DocsPath}"; then
-  DocsPath=$currentPath
-fi
-# Ensure OutFile has full path
-if ! echo "${OutFile}" | grep -Eq '^[a-zA-Z]:\\.*' && ! echo "${OutFile}" | grep -Eq '^/.*'; then
-  OutFile="${OutFolder}/${OutFile}"
-fi
-if ! echo "${DocsPath}" | grep -Eq '^[a-zA-Z]:\\.*' && ! echo "${DocsPath}" | grep -Eq '^/.*'; then
-  DocsPath="${currentPath}/${DocsPath}"
-fi
-if ! test -d "${DocsPath}"; then
-  error '' "Unable to find folder ${DocsPath}" 1
-fi
-# Get path to files in the same folder as the docs
-historyFilePath=$(get_file_path "${HistoryFile}" "${DocsPath}")
-inputFilePath=$(get_file_path "${InputFile}" "${DocsPath}")
-if ! test -f "${inputFilePath}"; then
-  error '' "Unable to find input file ${inputFilePath}" 1
-fi
-replaceFilePath=$(get_file_path "${ReplaceFile}" "${DocsPath}")
-# Get built in template
-templateFilePath=$(get_file_path "${Template}.tex" '/.pandoc/templates')
-# If build in template was not found
-if ! test -f "${templateFilePath}"; then
-  # Get specified template
-  templateFilePath=$(get_file_path "${Template}" '')
-  # If specified template was not found
-  if ! test -f "${templateFilePath}"; then
-    error '' "Unable to find template file ${templateFilePath}" 1
-  fi
-fi
-if [ "$(printf '%s' "${OutFile}" | tail -c 3)" = '.md' ]; then
-  mdOutFile="${OutFile}"
-elif [ "$(printf '%s' "${inputFilePath}" | tail -c 3)" = '.md' ]; then
-  mdOutFile="${inputFilePath}"
-else
-  mdOutFile="$(echo "$OutFile" | sed 's/.pdf$//g').md"
-fi
-currentDate=$(date "+%B %d, %Y")
-templateCoverFilePath=$(get_file_path "${Template}-cover.png" "${DocsPath}")
-if ! test -f "${templateCoverFilePath}"; then
-  templateCoverFilePath=$(get_file_path "$(echo "$templateFilePath" | sed 's/.tex$//g')-cover.png" '')
-  if [ "${Template}" = 'designdoc' ] && ! test -f "${templateCoverFilePath}"; then
-    error '' "Unable to find template cover file ${templateCoverFilePath}" 1
-  fi
-fi
-templateLogoFilePath=$(get_file_path "${Template}-logo.png" "${DocsPath}")
-if ! test -f "${templateLogoFilePath}"; then
-  templateLogoFilePath=$(get_file_path "$(echo "$templateFilePath" | sed 's/.tex$//g')-logo.png" '')
-  if [ "${Template}" = 'designdoc' ] && ! test -f "${templateLogoFilePath}"; then
-    error '' "Unable to find template logo file ${templateLogoFilePath}" 1
-  fi
-fi
-metaFilePathFixed="${OutFolder}/metadata_fixed.json"
-metaFilePath=$(get_file_path "${Template}-metadata.json" "${DocsPath}")
-if ! test -f "${metaFilePath}"; then
-  metaFilePath=$(get_file_path 'metadata.json' "${DocsPath}")
-  if ! test -f "${metaFilePath}"; then
-    metaFilePath=$(get_file_path "${Template}-metadata.json" "$(dirname "${templateFilePath}")")
-    if ! test -f "${metaFilePath}"; then
-      metaFilePath=$(get_file_path 'metadata.json' "$(dirname "${templateFilePath}")")
-    fi
-  fi
-fi
-if ! test -f "${metaFilePath}"; then
-  metaFilePath="${OutFolder}/metadata.json"
-fi
-info 'Inputs and calculated values:'
-info "- Columns:                ${Columns}"
-info "- CurrentDate:            ${currentDate}"
-info "- CurrentPath:            ${currentPath}"
-info "- DocsPath:               ${DocsPath}"
-info "- FirstChangeDescription: ${FirstChangeDescription}"
-info "- GitLogLimit:            ${GitLogLimit}"
-info "- HistoryFile:            ${HistoryFile}"
-info "- HistoryFilePath:        ${historyFilePath}"
-info "- InputFile:              ${InputFile}"
-info "- InputFilePath:          ${inputFilePath}"
-info "- InputFormat:            ${InputFormat}"
-info "- MainAuthor:             ${MainAuthor}"
-info "- MetaFilePath:           ${metaFilePath}"
-info "- metaFilePathFixed:      ${metaFilePathFixed}"
-info "- OutFile:                ${OutFile}"
-info "- OutFile markdown:       ${mdOutFile}"
-info "- OutFolder:              ${OutFolder}"
-info "- PDFEngine:              ${PDFEngine}"
-info "- Project:                ${Project}"
-info "- ReplaceFile:            ${ReplaceFile}"
-info "- ReplaceFilePath:        ${replaceFilePath}"
-info "- SkipGitCommitHistory:   ${SkipGitCommitHistory}"
-info "- Subtitle:               ${Subtitle}"
-info "- Template:               ${Template}"
-info "- TemplateFilePath:       ${templateFilePath}"
-info "- TemplateCoverFilePath:  ${templateCoverFilePath}"
-info "- TemplateLogoFilePath:   ${templateLogoFilePath}"
-info "- Title:                  ${Title}"
-if [ "$(printf '%s' "${inputFilePath}" | tail -c 6)" = '.order' ]; then
-  info "Merge markdown files in ${inputFilePath}"
-  printf '%s\n' "$(cat "${inputFilePath}")" | while read -r line; do
-    if test -n "${line}" && ! [ "$(printf '%s' "$line" | cut -c 1)" = '#' ]; then
-      if ! test -f "${DocsPath}/${line}"; then
-        error '' "Unable to find markdown file ${DocsPath}/${line}" 1
-      fi
-      mdFile="$(readlink -f "${DocsPath}/${line}")"
-      mdPath="$(dirname "$mdFile")"
-      tmpContent=$(
-        printf '%s' "$(sed -e "s|\(\[.*\](\)\(\../\)\(.*)\)|\1${mdPath}/\2\3|g" "${mdFile}" | sed -e "s|\(\[.*\](\)\(\./\)\(.*)\)|\1${mdPath}/\3|g" | sed -e "s|\(\[.*\](\)\(asset\)\(.*)\)|\1${mdPath}/\2\3|g" | sed -e "s|\(\[.*\](\)\(attach\)\(.*)\)|\1${mdPath}/\2\3|g" | sed -e "s|\(\[.*\](\)\(image\)\(.*)\)|\1${mdPath}/\2\3|g" | sed -e "s|\(\[.*\](\)\(\.\)\(.*)\)|\1${mdPath}/\2\3|g")"
-      )
-      if test -n "${tmpContent}"; then
-        info "Found ${#tmpContent} characters in ${mdFile}"
-        if ! test -f "${mdOutFile}"; then
-          printf '%s\n' "${tmpContent}" > "${mdOutFile}"
-        else
-          printf '\n%s\n' "${tmpContent}" >> "${mdOutFile}"
+set_InputList() {
+  local FILE
+  while [ "$#" -gt 0 ]; do
+    case "${1}" in
+      *)
+        FILE="${1}"
+        shift
+        if ! test -f "${FILE}"; then
+          error '' "Unable to find ${FILE}" 1
         fi
-      fi
-    else
-      info "Ignore ${line}"
-    fi
+        if [ "$(printf '%s' "${FILE}" | tail -c 6)" = '.order' ]; then
+          OrderList="${OrderList}$(printf '%s\n' "$(sed \
+            -e '/^#/d' \
+            -e '/^[[:space:]]*$/d' \
+            "${FILE}")" | tr '\n' ' ' | tr -d '\r') "
+        else
+          case "${InputList}" in
+            *${FILE}*) ;; # skip file if already in list
+            *) InputList="${InputList}$(readlink -f "${FILE}") " ;;
+          esac
+        fi
+        # If InputPath is not set
+        if test -z "${InputPath}"; then
+          # Set InputPath to the path of first file
+          InputPath=$(dirname "$(readlink -f "${FILE}")")
+        fi
+        ;;
+    esac
   done
-  info 'Done merging markdown files'
-fi
-if ! test -s "${mdOutFile}"; then
-  warning "No content found in ${mdOutFile}!"
-  exit 1
-fi
-mdContent=$(cat "${mdOutFile}")
-if test -n "${ReplaceFile}"; then
-  if ! test -f "${replaceFilePath}"; then
-    error '' "Unable to find replace file ${replaceFilePath}" 1
-  fi
-  info 'Perform replace in markdown'
-  tab_values=$(jq -r 'to_entries[] | [.key, .value] | @tsv' "${replaceFilePath}")
-  printf '%s\n' "${tab_values}" | while IFS="$(printf '\t')" read -r key value; do
-    printf '%s\n' "${mdContent}" | sed -e "s/${key}/${value}/g" > "${mdOutFile}"
-  done
-  mdContent="$(cat "${mdOutFile}")"
-fi
-if test -n "${mdContent}"; then
-  info "The markdown contains ${#mdContent} characters"
-  if ! [ "$(printf '%s' "${OutFile}" | tail -c 3)" = '.md' ]; then
-    # If meta data file is not present in docs folder, create it
-    if ! test -f "${metaFilePath}"; then
-      set_metadataContent <<META_DATA || true
-{
-  "block-headings": true,
-  "colorlinks": true,
-  "disable-header-and-footer": false,
-  "disclaimer": "This document contains business and trade secrets (essential information about Innofactor's business) and is therefore totally confidential. Confidentiality does not apply to pricing information",
-  "page-numbers": true,
-  "geometry":"a4paper,left=2.54cm,right=2.54cm,top=1.91cm,bottom=2.54cm",
-  "links-as-notes": true,
-  "listings-disable-line-numbers": false,
-  "listings-no-page-break": false,
-  "lof": false,
-  "lot": false,
-  "mainfont": "Carlito",
-  "pandoc-latex-environment": {
-    "warningblock": ["warning"],
-    "importantblock": ["important"],
-    "noteblock": ["note"],
-    "cautionblock": ["caution"],
-    "tipblock": ["tip"]
-  },
-  "table-use-row-colors": false,
-  "tables": true,
-  "titlepage": true,
-  "titlepage-color":"FFFFFF",
-  "titlepage-text-color": "5F5F5F",
-  "toc": true,
-  "toc-own-page": true,
-  "toc-title": "Table of Contents"
 }
-META_DATA
-      info "set metadataContent"
-      printf '%s\n' "${metadataContent}" | jq '.' > "${metaFilePath}"
-      info "done metadataContent"
-    fi
+set_metadataChangeHistory() {
+  local historyFilePath lineCount historyJson mergeLogs tmp
+  local author authors date description line version versionHistory
+  # If metadata file has version-history key
+  if [ "$(jq 'has("version-history")' "${MetadataFile}")" = 'true' ]; then
     info 'Get version history'
-    versionHistory=$(get_version_history)
-    authors="[$(echo "${versionHistory}" | jq '.[].author' | uniq | sed ':a; N; $!ba; s/\n/,/g')]"
-    set_metadataContentFixed <<META_DATA_FIXED || true
-{
-  "author": ${authors},
-  "version-history": ${versionHistory}
+    # If a history file is specified
+    if test -n "${HistoryFile}"; then
+      # Get full path to history file
+      historyFilePath=$(readlink -f "${HistoryFile}")
+      if ! test -f "${historyFilePath}"; then
+        error '' "Unable to find history file ${HistoryFile}" 1
+      fi
+      # Get mergeLogs from history file
+      mergeLogs=$(cat "${historyFilePath}")
+    elif [ "${SkipGitHistory}" != 'true' ]; then
+      # If GitLogLimit is not specified
+      if [ "${GitLogLimit}" = '' ]; then
+        # Default to 15 entries
+        GitLogLimit=15
+      fi
+      # Get mergeLogs from git log
+      mergeLogs=$(
+        git --no-pager log "-${GitLogLimit}" --date-order --date=format:'%b %e, %Y' \
+          --no-merges --oneline --pretty=format:'%D|%ad|%an|%s' "${InputPath}"
+      )
+    fi
+    # If mergeLogs is not empty
+    if test -n "${mergeLogs}"; then
+      # Count the log lines
+      lineCount=$(echo "${mergeLogs}" | wc -l)
+      historyJson='[]'
+      tmp=$(mktemp)
+      # Read log lines
+      printf '%s\n' "${mergeLogs}" | while read -r line; do
+        # Reduse line count by 1
+        lineCount=$((lineCount-1))
+        # Get version from log line
+        version=$(echo "${line}" | cut -d'|' -f1 | rev | cut -d'/' -f1 | rev)
+        # If version is empty or not a version
+        if test -z "${version}" || ! echo "${version}" | grep -Eq '^[0-9].*'; then
+          # Use version 1.0. + line count
+          version="1.0.${lineCount}"
+        fi
+        # Get date from log line
+        date=$(echo "${line}" | cut -d'|' -f2)
+        # Get author from log line
+        author=$(echo "${line}" | cut -d'|' -f3)
+        # Get description from log line
+        description=$(echo "${line}" | cut -d'|' -f4)
+        # If temp file has content
+        if test -s "${tmp}"; then
+          # Put that content into variable
+          historyJson=$(jq '.' "${tmp}")
+        fi
+        # Add data from log line to temp file
+        printf '%s\n' "${historyJson}" | jq \
+          --arg version "${version}" \
+          --arg date "${date}" \
+          --arg author "${author}" \
+          --arg description "${description}" \
+          '. +=[{ version: $version, date: $date, author: $author, description: $description }]' > "${tmp}"
+      done
+    elif test -n "${MainAuthor}" && test -n "${FirstChangeDescription}"; then
+      # Add default values to temp file
+      printf '%s\n' '[]' | jq \
+        --arg version '1.0.0' \
+        --arg date "$(date "+%B %d, %Y")" \
+        --arg author "${MainAuthor}" \
+        --arg description "${FirstChangeDescription}" \
+        '. +=[{ version: $version, date: $date, author: $author, description: $description }]' > "${tmp}"
+    fi
+    # If temp file has content
+    if test -s "${tmp}"; then
+      versionHistory=$(jq '.' "${tmp}")
+      set_metadataField version-history "${versionHistory}"
+      if [ "$(jq 'has("author")' "${MetadataFile}")" = 'true' ]; then
+        authors="[$(echo "${versionHistory}" | jq '.[].author' | uniq | sed ':a; N; $!ba; s/\n/,/g')]"
+        set_metadataField author "${authors}"
+      fi
+    fi
+    rm -f "${tmp}"
+  fi
 }
-META_DATA_FIXED
-    printf '%s\n' "${metadataContentFixed}" | jq '.' > "${metaFilePathFixed}"
-    # Change to the docs path so image paths can be relative
-    cd "${DocsPath}"
-    info "Create ${OutFile}"
-    printf '%s' "${mdContent}" | pandoc \
-      --columns="${Columns}" \
-      --dpi=300 \
-      --filter pandoc-latex-environment \
-      --from="${InputFormat}" \
-      --standalone \
-      --listings \
-      --metadata=date:"${currentDate}" \
-      --metadata=logo:"${templateLogoFilePath}" \
-      --metadata=project:"${Project}" \
-      --metadata=subtitle:"${Subtitle}" \
-      --metadata=title:"${Title}" \
-      --metadata=titlepage-top-cover-image:"${templateCoverFilePath}" \
-      --metadata-file="${metaFilePath}" \
-      --metadata-file="${metaFilePathFixed}" \
-      --output="${OutFile}" \
-      --pdf-engine="${PDFEngine}" \
-      --template="${templateFilePath}"
-    cd "${currentPath}"
+set_metadataField() {
+  local tmp
+  # If metadata file has key
+  if [ "$(jq --arg k "${1}" 'has($k)' "${MetadataFile}")" = 'true' ]; then
+    # Create a tmp file
+    tmp=$(mktemp)
+    # Set the key value and write to tmp file
+    jq --arg k "${1}" --arg v "${2}" '.[$k] = $v' "${MetadataFile}" > "${tmp}"
+    # Replace metadata file with tmp file
+    mv -f "${tmp}" "${MetadataFile}"
   fi
-  if ! test -f "${OutFile}"; then
-    warning "Unable to create ${OutFile}"
-  else
-    size=$(($(stat -c '%s' "${OutFile}") / 1000))
-    info "Created ${OutFile} using ${size} KB"
+}
+set_metadataImage() {
+  local newPath tmp
+  if test -n "${InputPath}" && test -f "${InputPath}/${Template}-${1}.png"; then
+    # Image file exist in input files folder and is prefixed with template name
+    newPath="${InputPath}/${Template}-${1}.png"
+  elif test -n "${InputPath}" && test -f "${InputPath}/${1}.png"; then
+    # Image file exist in input files folder
+    newPath="${InputPath}/${1}.png"
+  elif test -f "${TemplatePath}/${Template}-${1}.png"; then
+    # Image file exist in template folder and is prefixed with template name
+    newPath="${TemplatePath}/${Template}-${1}.png"
+  elif test -f "${TemplatePath}/${1}.png"; then
+    # Image file exist in template folder
+    newPath="${TemplatePath}/${1}.png"
   fi
+  if test -n "${newPath}" && [ "${newPath}" != "/.pandoc/templates/designdoc-${1}.png" ]; then
+    # Create a tmp file
+    tmp=$(mktemp)
+    # Set the image key value
+    jq --arg k "${2}" --arg l "${newPath}" '.[$k] = $l' "${MetadataFile}" > "${tmp}"
+    # Replace metadata file with tmp file
+    mv -f "${tmp}" "${MetadataFile}"
+  fi
+}
+process_params() {
+  local VALUE ARG POSITIONAL_SHIFTS=0
+  while [ "$#" -gt "$POSITIONAL_SHIFTS" ]; do
+    case "${1%%=*}" in
+      --author)
+        set_param_value "$@"
+        shift "$(get_param_shifts "$@")"
+        MainAuthor="$VALUE"
+        ;;
+      --description)
+        set_param_value "$@"
+        shift "$(get_param_shifts "$@")"
+        FirstChangeDescription="$VALUE"
+        ;;
+      --git-log-limit)
+        set_param_value "$@"
+        shift "$(get_param_shifts "$@")"
+        GitLogLimit="$VALUE"
+        ;;
+      --history-file)
+        set_param_value "$@"
+        shift "$(get_param_shifts "$@")"
+        HistoryFile="$VALUE"
+        ;;
+      --input-files)
+        set_param_value "$@"
+        shift "$(get_param_shifts "$@")"
+        InputFiles="$VALUE"
+        ;;
+      -o|--output)
+        set_param_value "$@"
+        shift "$(get_param_shifts "$@")"
+        OutputFile="$VALUE"
+        ;;
+      --output-folder)
+        set_param_value "$@"
+        shift "$(get_param_shifts "$@")"
+        OutputFolder="$VALUE"
+        ;;
+      --project)
+        set_param_value "$@"
+        shift "$(get_param_shifts "$@")"
+        Project="$VALUE"
+        ;;
+      --replace-file)
+        set_param_value "$@"
+        shift "$(get_param_shifts "$@")"
+        ReplaceFile="$VALUE"
+        ;;
+      --skip-git-history)
+        set_param_bool "$@"
+        shift "$(get_param_shifts_bool "$@")"
+        SkipGitHistory="$VALUE"
+        ;;
+      --subtitle)
+        set_param_value "$@"
+        shift "$(get_param_shifts "$@")"
+        Subtitle="$VALUE"
+        ;;
+      --template)
+        set_param_value "$@"
+        shift "$(get_param_shifts "$@")"
+        Template="$VALUE"
+        ;;
+      --title)
+        set_param_value "$@"
+        shift "$(get_param_shifts "$@")"
+        Title="$VALUE"
+        ;;
+      --ascii|--dump-args|--embed-resources|--epub-title-page| \
+      --fail-if-warnings|--file-scope|--html-q-tags|--ignore-args| \
+      --incremental|--list-tables|--listings|--no-check-certificate| \
+      --preserve-tabs|--reference-links|--sandbox| \
+      --section-divs--self-contained|--strip-comments|--toc| \
+      --table-of-contents|--trace)
+        set_param_bool "$@"
+        shift "$(get_param_shifts_bool "$@")"
+        PandocOptions="${PandocOptions}${ARG}=${VALUE} "
+        ;;
+      --bash-completion|--biblatex|-C|--citeproc|--gladtex|-h|--help|-i| \
+      --katex|--list-input-formats|--list-output-formats|--list-extensions| \
+      --list-highlight-languages|--list-highlight-styles|--mathml|-N| \
+      --natbib|--no-highlight|--number-sections|-p|-s|--standalone|-v| \
+      --verbose|--version|--webtex|--quiet)
+        ARG="${1}"
+        shift
+        PandocOptions="${PandocOptions}${ARG} "
+        ;;
+      -*)
+        set_param_value "$@"
+        shift "$(get_param_shifts "$@")"
+        PandocOptions="${PandocOptions}${VALUE} "
+        ;;
+      *)
+        VALUE="$1"
+        shift
+        set -- "$@" "$VALUE"
+        POSITIONAL_SHIFTS="$((POSITIONAL_SHIFTS+1))"
+        PositionalInput="${PositionalInput}${VALUE} "
+        ;;
+    esac
+  done
+}
+# Process script arguments and options
+process_params "$@"
+PandocOptions=$(echo "${PandocOptions}" | xargs)
+# If InputFiles was not set with option --input-files
+if test -z "${InputFiles}"; then
+  # Get InputFiles from positional script arguments
+  InputFiles=$(echo "${PositionalInput}" | xargs)
+fi
+if test -z "${InputFiles}"; then
+  error '' 'Missing input files. Value not set for option --input-files' 1
+fi
+if test -z "${OutputFolder}"; then
+  CurrentPath=$(pwd)
+  info "Value not set for option --output-folder. Using current path: ${CurrentPath}"
+  OutputFolder=$CurrentPath
+elif ! test -d "${OutputFolder}"; then
+  mkdir -p "${OutputFolder}"
+  if ! test -d "${OutputFolder}"; then
+    error '' "Unable to write output to ${OutputFolder}" 1
+  fi
+fi
+# Process input files (can be more than one and be in .order file)
+# Disable SC2086 because word splitting is intended
+# shellcheck disable=SC2086
+set_InputList $InputFiles
+# If using .order file(s)
+if test -n "${OrderList}"; then
+  # Process input files in the .order files
+  # Note: if mixing both .order files and other files, the other files
+  # will be added to the final input before the files in the .order files
+  # Disable SC2086 because word splitting is intended
+  # shellcheck disable=SC2086
+  set_InputList $OrderList
+fi
+if test -z "${InputList}"; then
+  error '' "Unable to find files: ${InputFiles}" 1
+fi
+# Merge markdown files into one InputContent variable
+# Disable SC2086 because word splitting is intended
+# shellcheck disable=SC2086
+set_InputContent $InputList
+# Ensure OutputFile has full path
+if ! echo "${OutputFile}" | grep -Eq '^[a-zA-Z]:\\.*' && ! echo "${OutputFile}" | grep -Eq '^/.*'; then
+  OutputFile="${OutputFolder}/${OutputFile}"
+fi
+# If the output file is a markdown file
+if [ "$(printf '%s' "${OutputFile}" | tail -c 3)" = '.md' ]; then
+  # Set input file the same as output file
+  PandocInput="${OutputFile}"
+elif test -n "${InputContent}"; then
+  # Ensure PandocInput ends with .md and strip away existing file extension
+  PandocInput="$(echo "$OutputFile" | sed 's|\(.*\)\..*|\1|').md"
+  # Write markdown content to file
+  printf '%s\n' "${InputContent}" > "${PandocInput}"
 else
-  warning "Could not find any markdown content to convert from ${InputFile}"
+  # Use the input list as it is
+  PandocInput=$InputList
+fi
+# If the input is markdown content
+if test -n "${InputContent}"; then
+  # If a replace file is specified
+  if test -n "${ReplaceFile}"; then
+    ReplaceFilePath=$(readlink -f "${ReplaceFile}")
+    if ! test -f "${ReplaceFilePath}"; then
+      error '' "Unable to find replace file ${ReplaceFile}" 1
+    fi
+    info 'Perform replace in markdown'
+    # Read content of replace json file into tab separated key value list
+    tab_values=$(jq -r 'to_entries[] | [.key, .value] | @tsv' "${ReplaceFilePath}")
+    # Read each line in the tab separated key value list into key and value variable
+    printf '%s\n' "${tab_values}" | while IFS="$(printf '\t')" read -r key value; do
+      # Replace key with value in PandocInput (inline)
+      sed -i -e "s/${key}/${value}/g" "${PandocInput}"
+    done
+    # Update InputContent from file
+    InputContent=$(cat "${PandocInput}")
+  fi
+  if ! test -s "${PandocInput}"; then
+    error '' "No content found in ${PandocInput}!" 1
+  fi
+  info "The markdown has ${#InputContent} characters"
+fi
+# If template is specified
+if test -n "${Template}"; then
+  # Get template path
+  case "${Template}" in
+    designdoc)
+      TemplateFile='/.pandoc/templates/designdoc.tex'
+      TemplatePath='/.pandoc/templates'
+      ;;
+    eisvogel)
+      TemplateFile='/.pandoc/templates/eisvogel.latex'
+      TemplatePath='/.pandoc/templates'
+      ;;
+    *)
+      TemplateFile=$(readlink -f "${Template}")
+      TemplatePath=$(dirname "${TemplateFile}")
+      ;;
+  esac
+  # If template is not found
+  if ! test -f "${TemplateFile}"; then
+    error '' "Unable to find template ${Template}" 1
+  fi
+fi
+# Get metadata file path
+if test -n "${InputPath}" && test -f "${InputPath}/${Template}-metadata.json"; then
+  # Metadata file exist in input files folder and is prefixed with template name
+  MetadataFile="${InputPath}/${Template}-metadata.json"
+elif test -n "${InputPath}" && test -f "${InputPath}/metadata.json"; then
+  # Metadata file exist in input files folder
+  MetadataFile="${InputPath}/metadata.json"
+elif test -f "${TemplatePath}/${Template}-metadata.json"; then
+  # Metadata file exist in template folder and is prefixed with template name
+  MetadataFile="${TemplatePath}/${Template}-metadata.json"
+elif test -f "${TemplatePath}/metadata.json"; then
+  # Metadata file exist in template folder
+  MetadataFile="${TemplatePath}/metadata.json"
+elif [ "${Template}" = 'designdoc' ]; then
+  # Use default metadata file for designdoc template
+  MetadataFile='/.pandoc/templates/designdoc-metadata.json'
+fi
+# If a metadata file is specified
+if test -n "${MetadataFile}"; then
+  # Update metadata file
+  set_metadataField date "$(date "+%B %d, %Y")"
+  set_metadataField project "${Project}"
+  set_metadataField subtitle "${Subtitle}"
+  set_metadataField title "${Title}"
+  # If using default metadata file for designdoc template
+  if [ "${MetadataFile}" = '/.pandoc/templates/designdoc-metadata.json' ]; then
+    # Update path to images
+    set_metadataImage logo logo
+    set_metadataImage cover titlepage-top-cover-image
+  fi
+  # Update change history
+  set_metadataChangeHistory
+  PandocOptions="${PandocOptions} --metadata-file=${MetadataFile}"
+fi
+PandocOptions="${PandocOptions} --template=${TemplateFile}"
+PandocOptions="${PandocOptions} --output=${OutputFile}"
+info "Pandoc options: ${PandocOptions}"
+info "Input file(s): ${PandocInput}"
+/usr/local/bin/pandoc "${PandocOptions}" "${PandocInput}"
+if ! test -f "${OutputFile}"; then
+  error '' "Failed to create ${OutputFile}" 1
+else
+  # Calculate output file size
+  size=$(($(stat -c '%s' "${OutputFile}") / 1000))
+  info "Created ${OutputFile} using ${size} KB"
 fi
