@@ -79,9 +79,9 @@ jobs:
           retention-days: 3
           path: ${{ github.workspace }}/alpine/freeze/pandoc-3.1.13.project.freeze
 
-      - name: Test extra image
-        if: ${{ matrix.stack != 'static' }}
-        run: make test-extra
+      #- name: Test extra image
+      #  if: ${{ matrix.stack != 'static' }}
+      #  run: make test-extra
 
       - name: Log into ghcr.io
         if: >

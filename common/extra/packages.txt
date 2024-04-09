@@ -15,7 +15,7 @@ trimspaces
 # see https://github.com/Wandmalfarbe/pandoc-latex-template/blob/master/.github/workflows/build-examples.yml
 #abstract
 adjustbox
-#awesomebox
+awesomebox
 #babel-german
 background
 bidi
