@@ -32,7 +32,7 @@ fvextra
 #hardwrap
 #incgraph
 #letltxmacro
-#lineno
+lineno
 #listingsutf8
 #ly1
 koma-script
