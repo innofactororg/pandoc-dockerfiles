@@ -20,11 +20,11 @@ awesomebox
 background
 bidi
 #catchfile
-#collectbox
+collectbox
 csquotes
 #everypage
-#filehook
-#fontawesome5
+filehook
+fontawesome5
 footmisc
 footnotebackref
 #framed
@@ -38,7 +38,7 @@ lineno
 koma-script
 mdframed
 #mweights
-#needspace
+needspace
 pagecolor
 #sectsty
 sourcecodepro
@@ -47,12 +47,12 @@ sourcesanspro
 titling
 #transparent
 #ucharcat
-#ulem
+ulem
 unicode-math
 upquote
 xecjk
 xurl
-#zref
+zref
 
 #########################################################################
 # Completes Source family
