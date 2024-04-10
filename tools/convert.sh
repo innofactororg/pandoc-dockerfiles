@@ -81,7 +81,7 @@ set_InputContent() {
             if test -z "${InputContent}"; then
               InputContent=$(printf '%s\n' "${CONTENT}")
             else
-              InputContent=$(printf '%s\n' "$(echo "${InputContent}\n\n${CONTENT}")")
+              InputContent=$(printf '%s\n\n%s\n' "${InputContent}" "${CONTENT}")
             fi
           fi
         fi
