@@ -83,6 +83,14 @@ jobs:
       #  if: ${{ matrix.stack != 'static' }}
       #  run: make test-extra
 
+      #- name: Publish test output
+      #  uses: actions/upload-artifact@ef09cdac3e2d3e60d8ccadda691f4f1cec5035cb #v4.3.1 + 3 commits
+      #  with:
+      #    if-no-files-found: error
+      #    name: tests
+      #    retention-days: 3
+      #    path: ${{ github.workspace }}/alpine/freeze/pandoc-3.1.13.project.freeze
+
       - name: Log into ghcr.io
         if: >
           github.event_name != 'pull_request' &&

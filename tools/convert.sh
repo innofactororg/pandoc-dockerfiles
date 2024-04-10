@@ -39,13 +39,6 @@ get_param_shifts() {
     printf 1
   fi
 }
-get_param_shifts_bool() {
-  if [ "${1%%=*}" = "$1" ] || [ "${1%-}" != "$1" ]; then
-    printf 1
-  else
-    printf 2
-  fi
-}
 set_param_value() {
   ARG="${1%%=*}"
   if [ "${ARG}" = "$1" ]; then
@@ -60,25 +53,8 @@ set_param_value() {
   fi
   shift
 }
-set_param_bool() {
-  ARG="${1%%=*}"
-  if [ "${ARG}" = "$1" ]; then
-    shift
-    VALUE="true"
-  elif [ "${1%-}" != "$1" ]; then
-    shift
-    VALUE="false"
-  else
-    if [ "${1#*=}" != true ] && [ "${1#*=}" != false ]; then
-      >&2 echo "You must specify true or false for property ${ARG}"
-      return 1
-    fi
-    VALUE="${1#*=}"
-    shift
-  fi
-}
 set_InputContent() {
-  local FILE NAME FOLDER CONTENT
+  local FILE NAME FOLDER CONTENT ITEMS="$#"
   while [ "$#" -gt 0 ]; do
     case "${1}" in
       *)
@@ -99,7 +75,9 @@ set_InputContent() {
               "${FILE}")"
           )
           if test -n "${CONTENT}"; then
-            info "Found ${#CONTENT} characters in ${NAME}"
+            if [ "${ITEMS}" -gt 1 ]; then
+              info "${NAME} has ${#CONTENT} characters"
+            fi
             if test -z "${InputContent}"; then
               InputContent=$(printf '%s\n' "${CONTENT}")
             else
@@ -295,11 +273,6 @@ process_params() {
         shift "$(get_param_shifts "$@")"
         OutputFile="$VALUE"
         ;;
-      --output-folder)
-        set_param_value "$@"
-        shift "$(get_param_shifts "$@")"
-        OutputFolder="$VALUE"
-        ;;
       --project)
         set_param_value "$@"
         shift "$(get_param_shifts "$@")"
@@ -311,9 +284,8 @@ process_params() {
         ReplaceFile="$VALUE"
         ;;
       --skip-git-history)
-        set_param_bool "$@"
-        shift "$(get_param_shifts_bool "$@")"
-        SkipGitHistory="$VALUE"
+        shift
+        SkipGitHistory='true'
         ;;
       --subtitle)
         set_param_value "$@"
@@ -330,21 +302,16 @@ process_params() {
         shift "$(get_param_shifts "$@")"
         Title="$VALUE"
         ;;
-      --ascii|--dump-args|--embed-resources|--epub-title-page| \
-      --fail-if-warnings|--file-scope|--html-q-tags|--ignore-args| \
-      --incremental|--list-tables|--listings|--no-check-certificate| \
-      --preserve-tabs|--reference-links|--sandbox| \
-      --section-divs--self-contained|--strip-comments|--toc| \
-      --table-of-contents|--trace)
-        set_param_bool "$@"
-        shift "$(get_param_shifts_bool "$@")"
-        PandocOptions="${PandocOptions}${ARG}=${VALUE} "
-        ;;
-      --bash-completion|--biblatex|-C|--citeproc|--gladtex|-h|--help|-i| \
-      --katex|--list-input-formats|--list-output-formats|--list-extensions| \
-      --list-highlight-languages|--list-highlight-styles|--mathml|-N| \
-      --natbib|--no-highlight|--number-sections|-p|-s|--standalone|-v| \
-      --verbose|--version|--webtex|--quiet)
+      --ascii|--bash-completion|--biblatex|-C|--citeproc|--dump-args| \
+      --embed-resources|--epub-title-page|--fail-if-warnings|--file-scope| \
+      --gladtex|-h|--help|--html-q-tags|-i|--ignore-args|--incremental| \
+      --katex|--list-extensions|--list-highlight-languages| \
+      --list-highlight-styles|--list-input-formats|--list-output-formats| \
+      --list-tables|--listings|--mathml|-N|--natbib|--no-check-certificate| \
+      --no-highlight|--number-sections|-p|--preserve-tabs|--reference-links| \
+      -s|--sandbox|--section-divs--self-contained|--standalone| \
+      --strip-comments|--table-of-contents|--toc|--trace|-v|--verbose| \
+      --version|--webtex|--quiet)
         ARG="${1}"
         shift
         PandocOptions="${PandocOptions}${ARG} "
@@ -352,7 +319,7 @@ process_params() {
       -*)
         set_param_value "$@"
         shift "$(get_param_shifts "$@")"
-        PandocOptions="${PandocOptions}${VALUE} "
+        PandocOptions="${PandocOptions}${ARG}=${VALUE} "
         ;;
       *)
         VALUE="$1"
@@ -375,16 +342,6 @@ fi
 if test -z "${InputFiles}"; then
   error '' 'Missing input files. Value not set for option --input-files' 1
 fi
-if test -z "${OutputFolder}"; then
-  CurrentPath=$(pwd)
-  info "Value not set for option --output-folder. Using current path: ${CurrentPath}"
-  OutputFolder=$CurrentPath
-elif ! test -d "${OutputFolder}"; then
-  mkdir -p "${OutputFolder}"
-  if ! test -d "${OutputFolder}"; then
-    error '' "Unable to write output to ${OutputFolder}" 1
-  fi
-fi
 # Process input files (can be more than one and be in .order file)
 # Disable SC2086 because word splitting is intended
 # shellcheck disable=SC2086
@@ -399,23 +356,19 @@ if test -n "${OrderList}"; then
   set_InputList $OrderList
 fi
 if test -z "${InputList}"; then
-  error '' "Unable to find files: ${InputFiles}" 1
+  error '' "Unable to find input: ${InputFiles}" 1
 fi
 # Merge markdown files into one InputContent variable
 # Disable SC2086 because word splitting is intended
 # shellcheck disable=SC2086
 set_InputContent $InputList
-# Ensure OutputFile has full path
-if ! echo "${OutputFile}" | grep -Eq '^[a-zA-Z]:\\.*' && ! echo "${OutputFile}" | grep -Eq '^/.*'; then
-  OutputFile="${OutputFolder}/${OutputFile}"
-fi
 # If the output file is a markdown file
 if [ "$(printf '%s' "${OutputFile}" | tail -c 3)" = '.md' ]; then
   # Set input file the same as output file
   PandocInput="${OutputFile}"
 elif test -n "${InputContent}"; then
   # Ensure PandocInput ends with .md and strip away existing file extension
-  PandocInput="$(echo "$OutputFile" | sed 's|\(.*\)\..*|\1|').md"
+  PandocInput="$(echo "$OutputFile" | sed 's|\(.*\)\..*|\1|')_input.md"
   # Write markdown content to file
   printf '%s\n' "${InputContent}" > "${PandocInput}"
 else
@@ -430,13 +383,16 @@ if test -n "${InputContent}"; then
     if ! test -f "${ReplaceFilePath}"; then
       error '' "Unable to find replace file ${ReplaceFile}" 1
     fi
-    info 'Perform replace in markdown'
     # Read content of replace json file into tab separated key value list
     tab_values=$(jq -r 'to_entries[] | [.key, .value] | @tsv' "${ReplaceFilePath}")
     # Read each line in the tab separated key value list into key and value variable
     printf '%s\n' "${tab_values}" | while IFS="$(printf '\t')" read -r key value; do
-      # Replace key with value in PandocInput (inline)
-      sed -i -e "s/${key}/${value}/g" "${PandocInput}"
+      # If pandoc input contains key
+      if [ "${InputContent#*"${key}"}" != "${InputContent}" ]; then
+        info "input: replace '${key}' with '${value}'"
+        # Replace key with value in InputContent (inline)
+        sed -i -e "s/${key}/${value}/g" "${PandocInput}"
+      fi
     done
     # Update InputContent from file
     InputContent=$(cat "${PandocInput}")
@@ -444,7 +400,7 @@ if test -n "${InputContent}"; then
   if ! test -s "${PandocInput}"; then
     error '' "No content found in ${PandocInput}!" 1
   fi
-  info "The markdown has ${#InputContent} characters"
+  info "Found ${#InputContent} characters in pandoc input"
 fi
 # If template is specified
 if test -n "${Template}"; then
@@ -504,13 +460,14 @@ if test -n "${MetadataFile}"; then
 fi
 PandocOptions="${PandocOptions} --template=${TemplateFile}"
 PandocOptions="${PandocOptions} --output=${OutputFile}"
-info "Pandoc options: ${PandocOptions}"
-info "Input file(s): ${PandocInput}"
-/usr/local/bin/pandoc "${PandocOptions}" "${PandocInput}"
+info "Running: pandoc ${PandocOptions} ${PandocInput}"
+# Disable SC2086 because word splitting is intended
+# shellcheck disable=SC2086
+/usr/local/bin/pandoc ${PandocOptions} ${PandocInput}
 if ! test -f "${OutputFile}"; then
   error '' "Failed to create ${OutputFile}" 1
 else
   # Calculate output file size
   size=$(($(stat -c '%s' "${OutputFile}") / 1000))
-  info "Created ${OutputFile} using ${size} KB"
+  info "Created ${OutputFile} (${size} KB)"
 fi

@@ -185,18 +185,46 @@ $(code_targets): output/code-highlight-%.pdf: code-highlight.md
 #
 EXTRA_CMD = docker run --rm \
 	-v $(test_files_path):/data \
-	--entrypoint /usr/local/bin/pandoc \
+	--entrypoint /.pandoc/tools/convert.sh \
+	$(IMAGE) \
+	--fail-if-warnings
+
+CONVERT_CMD = docker run --rm \
+	-v $(test_files_path):/data \
+	--entrypoint /.pandoc/tools/convert.sh \
 	$(IMAGE) \
 	--fail-if-warnings
 
 .PHONY: test-extra
-test-extra: output/eisvogel.pdf #output/beamertheme-metropolis.pdf
+test-extra: output/eisvogel.pdf output/designdoc.pdf #output/beamertheme-metropolis.pdf
 
 output/eisvogel.pdf: eisvogel.md
 	$(EXTRA_CMD) $< \
 	    --output=$@ \
 	    --template=eisvogel \
 	    --pdf-engine=xelatex
+
+output/designdoc.pdf: designdoc.md
+	$(CONVERT_CMD) $< \
+			--author="Innofactor" \
+			--columns="72" \
+			--description="Initial draft" \
+			--dpi=300 \
+			--filter pandoc-latex-environment \
+			--from="markdown+alerts+backtick_code_blocks+escaped_line_breaks+footnotes+implicit_header_references+inline_notes+line_blocks+space_in_atx_header+table_captions+grid_tables+pipe_tables+task_lists+yaml_metadata_block" \
+			--git-log-limit="15" \
+			--history-file="designdoc-history.txt" \
+			--input-files="designdoc.order" \
+			--listings \
+			--output=$@ \
+			--pdf-engine="xelatex" \
+			--project="1234567" \
+			--replace-file="designdoc-replace.json" \
+			--skip-git-history="true" \
+			--standalone \
+			--subtitle="Test document for pandoc-dockerfiles" \
+			--template="designdoc" \
+			--title="Designdoc template"
 
 #output/beamertheme-metropolis.pdf: beamertheme-metropolis.md
 #	$(EXTRA_CMD) $< \
@@ -213,4 +241,4 @@ output/eisvogel.pdf: eisvogel.md
 #
 .PHONY: clean
 clean:
-	rm -rf output/*
+	rm -rf output/eisvogel.pdf
