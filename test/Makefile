@@ -211,7 +211,7 @@ output/designdoc.pdf: designdoc.md
 			--description="Initial draft" \
 			--dpi=300 \
 			--filter pandoc-latex-environment \
-			--from="markdown+alerts+backtick_code_blocks+escaped_line_breaks+footnotes+implicit_header_references+inline_notes+line_blocks+space_in_atx_header+table_captions+grid_tables+pipe_tables+task_lists+yaml_metadata_block" \
+			--from="markdown+backtick_code_blocks+escaped_line_breaks+footnotes-implicit_figures+implicit_header_references+inline_notes+line_blocks+link_attributes+space_in_atx_header+table_captions+multiline_tables+pipe_tables+task_lists+yaml_metadata_block" \
 			--git-log-limit="15" \
 			--history-file="designdoc-history.txt" \
 			--input-files="designdoc.order" \

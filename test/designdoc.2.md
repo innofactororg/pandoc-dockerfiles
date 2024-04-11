@@ -94,14 +94,6 @@ A shortcut form can be used for specifying the language of the code block:
 }
 ```
 
-To cause the lines of the code block to be numbered, use:
-
-```haskell {.numberLines startFrom="1"}
-qsort [] = []
-```
-
-The numberLines class will cause the lines of the code block to be numbered, starting with 1 or the value of the startFrom attribute.
-
 ### Line blocks
 
 A line block is a sequence of lines beginning with a vertical bar (|) followed by a space. The division into lines will be preserved in the output, as will any leading spaces; otherwise, the lines will be formatted as Markdown. This is useful for verse and addresses:
@@ -124,12 +116,6 @@ Here is a footnote reference,[^1] and another.[^longnote]
     Subsequent paragraphs are indented to show that they
     belong to the previous footnote.
 
-        { some.code }
-
-    The whole paragraph can be indented, or just the first
-    line. In this way, multi-paragraph footnotes work like
-    multi-paragraph list items.
-
 This paragraph won't be part of the note, because it
 isn't indented.
 
@@ -145,7 +131,11 @@ note.]
 
 ## Heading identifiers
 
-To link to a heading `# Heading identifiers in HTML` you can simply write `[Heading identifiers in HTML]`.
+To link to a heading `# Footnotes` you can simply write [Footnotes].
+
+## Images
+
+![Image text](/.pandoc/templates/designdoc-logo.png){ width=50% }
 
 ## Lists
 
@@ -160,90 +150,66 @@ Task lists can be used with the syntax of GitHub-Flavored Markdown:
 
 A backslash followed by a newline is a hard line break.
 
-Note: in multiline and grid table cells, this is the only way to create a hard line break, since trailing spaces in the cells are ignored.
+Note: in multiline table cells, this is the only way to create a hard line break, since trailing spaces in the cells are ignored.
 
 ## Tables
 
 A caption may optionally be provided with tables. A caption is a paragraph beginning with the string Table: (or table: or just :), which will be stripped off. It may appear either before or after the table.
 
-### Grid tables
+### Multiline tables
 
-Grid tables look like this:
+Multiline tables allow header and table rows to span multiple lines of text (but cells that span multiple columns or rows of the table are not supported). Here is an example:
 
-: Sample grid table.
+-----------------------------------------------------------------------------------------------------------------------------------
+ Centered   Default           Right Left
+  Header    Aligned         Aligned Aligned
+----------- ------- --------------- -----------------------------------------------------------------------------------------------
+   First    row                12.0 Example of a row that spans multiple lines and is really wide you know. Lets see how this goes.
+                                    This is the second line. Hooray.
 
-+---------------+---------------+--------------------+
-| Fruit | Price | Advantages |
-+===============+===============+====================+
-| Bananas | $1.34 | - built-in wrapper |
-| | | - bright color |
-+---------------+---------------+--------------------+
-| Oranges | $2.10 | - cures scurvy |
-| | | - tasty |
-+---------------+---------------+--------------------+
+  Second    row                 5.0 Here's another one. Note
+                                    the blank line between
+                                    rows.
+-----------------------------------------------------------------------------------------------------------------------------------
 
-Cells can span multiple columns or rows:
+Table: Here's the caption. It, too, may span
+multiple lines.
 
-+---------------------+----------+
-| Property | Earth |
-+=============+=======+==========+
-| | min | -89.2 °C |
-| Temperature +-------+----------+
-| 1961-1990 | mean | 14 °C |
-| +-------+----------+
-| | max | 56.7 °C |
-+-------------+-------+----------+
+The header and table rows must each fit on one line. Column alignments are determined by the position of the header text relative to the dashed line below it:
 
-A table header may contain more than one row:
+- The table must begin with a row of dashes, before the header text (unless the header row is omitted).
+- The table must end with a row of dashes, then a blank line.
+- The rows must be separated by blank lines.
+- If the dashed line is flush with the header text on the right side but extends beyond it on the left, the column is right-aligned.
+- If the dashed line is flush with the header text on the left side but extends beyond it on the right, the column is left-aligned.
+- If the dashed line extends beyond the header text on both sides, the column is centered.
+- If the dashed line is flush with the header text on both sides, the default alignment is used (in most cases, this will be left).
 
-+---------------------+-----------------------+
-| Location | Temperature 1961-1990 |
-| | in degree Celsius |
-| +-------+-------+-------+
-| | min | mean | max |
-+=====================+=======+=======+=======+
-| Antarctica | -89.2 | N/A | 19.8 |
-+---------------------+-------+-------+-------+
-| Earth | -89.2 | 14 | 56.7 |
-+---------------------+-------+-------+-------+
+In multiline tables, the table parser pays attention to the widths of the columns, and the writers try to reproduce these relative widths in the output. So, if you find that one of the columns is too narrow in the output, try widening it in the Markdown source.
 
-Alignments can be specified as with pipe tables, by putting colons at the boundaries of the separator line after the header:
+The column header row may be omitted, provided a dashed line is used to end the table. For example:
 
-+---------------+---------------+--------------------+
-| Right | Left | Centered |
-+==============:+:==============+:==================:+
-| Bananas | $1.34 | built-in wrapper |
-+---------------+---------------+--------------------+
+-------     ------ ----------   -------
+     12     12        12             12
+    123     123       123           123
+      1     1          1              1
+-------     ------ ----------   -------
 
-For headerless tables, the colons go on the top line instead:
+: Here's a multiline table without a header.
 
-+--------------:+:--------------+:------------------:+
-| Right | Left | Centered |
-+---------------+---------------+--------------------+
+When the header row is omitted, column alignments are determined on the basis of the first line of the table body. So, in the tables above, the columns would be right, left, center, and right aligned, respectively.
 
-A table foot can be defined by enclosing it with separator lines that use = instead of -:
-
-+---------------+---------------+
-| Fruit | Price |
-+===============+===============+
-| Bananas | $1.34 |
-+---------------+---------------+
-| Oranges | $2.10 |
-+===============+===============+
-| Sum | $3.44 |
-+===============+===============+
-
-The foot must always be placed at the very bottom of the table.
+It is possible for a multiline table to have just one row, but the row should be followed by a blank line (and then the row of dashes that ends the table).
 
 ### Pipe tables
 
 Pipe tables look like this:
 
-| Right | Left | Default | Center |
-| ----: | :--- | ------- | :----: |
-|    12 | 12   | 12      |   12   |
-|   123 | 123  | 123     |  123   |
-|     1 | 1    | 1       |   1    |
+| Right | Left | Default                                                                                                                    | Center |
+| ----: | :--- | -------------------------------------------------------------------------------------------------------------------------- | :----: |
+|    12 | 12   | Lots of text in this cell. It will wrap but if all cells have lots of text we could be better off using a multiline table. |   12   |
+|   123 | 123  | 123                                                                                                                        |  123   |
+|     1 | 1    | 1                                                                                                                          |   1    |
 
 The beginning and ending pipe characters are optional, but pipes are required between all columns. The colons indicate column alignment as shown. The header cannot be omitted. To simulate a headerless table, include a header with blank cells.
 

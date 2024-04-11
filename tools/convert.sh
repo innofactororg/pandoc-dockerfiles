@@ -193,7 +193,7 @@ set_metadataChangeHistory() {
     fi
     # If temp file has content
     if test -s "${tmp}"; then
-      versionHistory=$(jq '.' "${tmp}")
+      versionHistory=$(jq -c '.' "${tmp}")
       set_metadataField version-history "${versionHistory}"
       if [ "$(jq 'has("author")' "${MetadataFile}")" = 'true' ]; then
         authors="[$(echo "${versionHistory}" | jq '.[].author' | uniq | sed ':a; N; $!ba; s/\n/,/g')]"
@@ -210,7 +210,11 @@ set_metadataField() {
     # Create a tmp file
     tmp=$(mktemp)
     # Set the key value and write to tmp file
-    jq --arg k "${1}" --arg v "${2}" '.[$k] = $v' "${MetadataFile}" > "${tmp}"
+    if [ "$(echo "${2}" | cut -c1)" = '[' ]; then
+      jq --arg k "${1}" --argjson v "${2}" '.[$k] = $v' "${MetadataFile}" > "${tmp}"
+    else
+      jq --arg k "${1}" --arg v "${2}" '.[$k] = $v' "${MetadataFile}" > "${tmp}"
+    fi
     # Replace metadata file with tmp file
     mv -f "${tmp}" "${MetadataFile}"
   fi

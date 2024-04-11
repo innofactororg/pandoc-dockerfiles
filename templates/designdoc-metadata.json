@@ -25,6 +25,7 @@
   "subtitle": "",
   "table-use-row-colors": false,
   "tables": true,
+  "tables-left-aligned": true,
   "title": "",
   "titlepage": true,
   "titlepage-color": "FFFFFF",
