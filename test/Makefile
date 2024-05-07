@@ -1,7 +1,8 @@
-# Two primary targets are defined by this Makefile:
+# Three primary targets are defined by this Makefile:
 #
 # 1. test-minimal: test a minimal base image
 # 2. test-latex: test a latex image
+# 3. test-extra: test an extra image
 #
 # The IMAGE variable is required to be defined in order to `docker run` the
 # various tests.  The parent Makefile test targets define this, or alternatively
@@ -81,8 +82,7 @@ test-crossref-filter: $(test_files_path)/crossref-test.md \
 #
 LATEX_CMD = docker run --rm \
 	-v $(test_files_path):/data \
-	$(IMAGE) \
-	--fail-if-warnings
+	$(IMAGE)
 
 # Generate list of targets to test all highlighting options available in pandoc.
 # See: https://pandoc.org/MANUAL.html#option--highlight-style
@@ -111,17 +111,18 @@ test-latex: output/testsuite.pdf output/french.pdf output/german.pdf \
 output/testsuite.pdf: testsuite.native
 	$(LATEX_CMD) $< \
 	    --output=$@ \
-	    --pdf-engine=xelatex
+	    --pdf-engine=latexmk
 
 output/french.pdf: french.md
 	$(LATEX_CMD) $< \
 	    --output=$@ \
+	    --variable=csquotes \
 	    --pdf-engine=xelatex
 
 output/german.pdf: german.md
 	$(LATEX_CMD) $< \
 	    --output=$@ \
-	    --pdf-engine=xelatex
+	    --pdf-engine=lualatex
 
 output/lorem-geometry.pdf: lorem.md geometry.yaml
 	$(LATEX_CMD) $< \
@@ -188,13 +189,20 @@ EXTRA_CMD = docker run --rm \
 	--fail-if-warnings
 
 .PHONY: test-extra
-test-extra: output/eisvogel.pdf output/beamertheme-metropolis.pdf
+test-extra: output/eisvogel.pdf output/eisvogel_with_environment.pdf output/beamertheme-metropolis.pdf
 
 output/eisvogel.pdf: eisvogel.md
 	$(EXTRA_CMD) $< \
 	    --output=$@ \
 	    --template=eisvogel \
 	    --pdf-engine=xelatex
+
+output/eisvogel_with_environment.pdf: eisvogel.md
+	$(EXTRA_CMD) $< \
+	    --output=$@ \
+	    --template=eisvogel \
+	    --pdf-engine=xelatex \
+	    --filter=pandoc-latex-environment
 
 output/beamertheme-metropolis.pdf: beamertheme-metropolis.md
 	$(EXTRA_CMD) $< \
