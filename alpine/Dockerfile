@@ -192,17 +192,12 @@ RUN sed -e 's/ *#.*$//' -e '/^ *$/d' /root/extra_packages.txt | xargs tlmgr inst
 
 RUN python3 -m pip install --break-system-packages --no-cache-dir \
     pandoc-latex-environment
-    #python-dotenv \
-    #Office365-REST-Python-Client
 
 ARG TEMPLATES_DIR=/.pandoc/templates
-ARG TOOLS_DIR=/.pandoc/tools
 
 RUN mkdir -p ${TEMPLATES_DIR} && \
     ln -s /.pandoc /root/.pandoc
 
 COPY templates/ ${TEMPLATES_DIR}/
-
-COPY --chmod=555 tools/convert.sh ${TOOLS_DIR}/
 
 CMD [ "node" ]

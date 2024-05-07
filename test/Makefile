@@ -1,14 +1,15 @@
-# Two primary targets are defined by this Makefile:
+# Three primary targets are defined by this Makefile:
 #
 # 1. test-minimal: test a minimal base image
 # 2. test-latex: test a latex image
+# 3. test-extra: test an extra image
 #
 # The IMAGE variable is required to be defined in order to `docker run` the
 # various tests.  The parent Makefile test targets define this, or alternatively
 #
-# 1. IMAGE=ghcr.io/innofactororg/image:tag make test-minimal
-# 2. IMAGE=ghcr.io/innofactororg/image:tag make test-latex
-# 3. IMAGE=ghcr.io/innofactororg/image:tag make test-extra
+# 1. IMAGE=pandoc/image:tag make test-minimal
+# 2. IMAGE=pandoc/image:tag make test-latex
+# 3. IMAGE=pandoc/image:tag make test-extra
 ifndef IMAGE
 $(error IMAGE variable must be set to docker image to test)
 endif
@@ -82,8 +83,7 @@ test-crossref-filter: $(test_files_path)/crossref-test.md \
 LATEX_CMD = docker run --rm \
 	-v $(test_files_path):/data \
 	--entrypoint /usr/local/bin/pandoc \
-	$(IMAGE) \
-	--fail-if-warnings
+	$(IMAGE)
 
 # Generate list of targets to test all highlighting options available in pandoc.
 # See: https://pandoc.org/MANUAL.html#option--highlight-style
@@ -112,17 +112,18 @@ test-latex: output/testsuite.pdf output/french.pdf output/german.pdf \
 output/testsuite.pdf: testsuite.native
 	$(LATEX_CMD) $< \
 	    --output=$@ \
-	    --pdf-engine=xelatex
+	    --pdf-engine=latexmk
 
 output/french.pdf: french.md
 	$(LATEX_CMD) $< \
 	    --output=$@ \
+	    --variable=csquotes \
 	    --pdf-engine=xelatex
 
 output/german.pdf: german.md
 	$(LATEX_CMD) $< \
 	    --output=$@ \
-	    --pdf-engine=xelatex
+	    --pdf-engine=lualatex
 
 output/lorem-geometry.pdf: lorem.md geometry.yaml
 	$(LATEX_CMD) $< \
@@ -185,18 +186,12 @@ $(code_targets): output/code-highlight-%.pdf: code-highlight.md
 #
 EXTRA_CMD = docker run --rm \
 	-v $(test_files_path):/data \
-	--entrypoint /.pandoc/tools/convert.sh \
-	$(IMAGE) \
-	--fail-if-warnings
-
-CONVERT_CMD = docker run --rm \
-	-v $(test_files_path):/data \
-	--entrypoint /.pandoc/tools/convert.sh \
+	--entrypoint /usr/local/bin/pandoc \
 	$(IMAGE) \
 	--fail-if-warnings
 
 .PHONY: test-extra
-test-extra: output/eisvogel.pdf output/designdoc.pdf #output/beamertheme-metropolis.pdf
+test-extra: output/eisvogel.pdf output/eisvogel_with_environment.pdf output/beamertheme-metropolis.pdf
 
 output/eisvogel.pdf: eisvogel.md
 	$(EXTRA_CMD) $< \
@@ -204,34 +199,19 @@ output/eisvogel.pdf: eisvogel.md
 	    --template=eisvogel \
 	    --pdf-engine=xelatex
 
-output/designdoc.pdf: designdoc.md
-	$(CONVERT_CMD) $< \
-			--author="Innofactor" \
-			--columns="72" \
-			--description="Initial draft" \
-			--dpi=300 \
-			--filter pandoc-latex-environment \
-			--from="markdown+backtick_code_blocks+escaped_line_breaks+footnotes-implicit_figures+implicit_header_references+inline_notes+line_blocks+link_attributes+space_in_atx_header+table_captions+multiline_tables+pipe_tables+task_lists+yaml_metadata_block" \
-			--git-log-limit="15" \
-			--history-file="designdoc-history.txt" \
-			--input-files="designdoc.order" \
-			--listings \
-			--output=$@ \
-			--pdf-engine="xelatex" \
-			--project="1234567" \
-			--replace-file="designdoc-replace.json" \
-			--skip-git-history="true" \
-			--standalone \
-			--subtitle="Test document for pandoc-dockerfiles" \
-			--template="designdoc" \
-			--title="Designdoc template"
+output/eisvogel_with_environment.pdf: eisvogel.md
+	$(EXTRA_CMD) $< \
+	    --output=$@ \
+	    --template=eisvogel \
+	    --pdf-engine=xelatex \
+	    --filter=pandoc-latex-environment
 
-#output/beamertheme-metropolis.pdf: beamertheme-metropolis.md
-#	$(EXTRA_CMD) $< \
-#	    --output=$@ \
-#	    --to=beamer \
-#	    --variable=theme:metropolis \
-#	    --variable=themeoptions:numbering=none
+output/beamertheme-metropolis.pdf: beamertheme-metropolis.md
+	$(EXTRA_CMD) $< \
+	    --output=$@ \
+	    --to=beamer \
+	    --variable=theme:metropolis \
+	    --variable=themeoptions:numbering=none
 
 #   ____ _
 #  / ___| | ___  __ _ _ __
@@ -241,4 +221,4 @@ output/designdoc.pdf: designdoc.md
 #
 .PHONY: clean
 clean:
-	rm -rf output/eisvogel.pdf
+	rm -rf output/*
