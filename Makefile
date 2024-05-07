@@ -98,6 +98,8 @@ endef
 # Generate convenience targets for all supported stacks.
 $(foreach img,$(image_stacks),$(eval $(call stack,$(img))))
 
+export TEXLIVE_MIRROR_URL
+
 # Freeze ################################################################
 .PHONY: freeze-file
 freeze-file: $(STACK)/$(stack_freeze_file)
@@ -112,7 +114,7 @@ freeze-file: $(STACK)/$(stack_freeze_file)
 		$(docker_cpu_options)
 	docker run --rm \
 		-v "$(makefile_dir):/app" \
-	  --env WITHOUT_CROSSREF=true \
+		--env WITHOUT_CROSSREF=$(WITHOUT_CROSSREF) \
 		ghcr.io/innofactororg/$(STACK)-builder-base:latest-$(STACK) \
 		sh /app/common/pandoc-freeze.sh \
 		    -c $(PANDOC_COMMIT) \

@@ -129,7 +129,6 @@ FROM alpine-core as alpine-latex
 
 # NOTE: to maintainers, please keep this listing alphabetical.
 RUN apk --no-cache add \
-        bind-tools \
         curl \
         fontconfig \
         freetype \
@@ -162,13 +161,22 @@ COPY common/latex/packages.txt /root/packages.txt
 # TeXLive version to install (leave empty to use the latest version).
 ARG texlive_version=
 
+# TeXLive mirror URL (leave empty to use the default mirror).
+ARG texlive_mirror_url=
+
 # Request musl precompiled binary access
-RUN echo "binary_x86_64-linuxmusl 1" >> /root/texlive.profile && \
-    /root/install-texlive.sh $texlive_version && \
-    sed -e 's/ *#.*$//' -e '/^ *$/d' /root/packages.txt | xargs tlmgr install && \
-    rm -f /root/texlive.profile /root/install-texlive.sh /root/packages.txt && \
-    TERM=dumb luaotfload-tool --update && \
-    chmod -R o+w /opt/texlive/texdir/texmf-var
+RUN echo "binary_x86_64-linuxmusl 1" >> /root/texlive.profile \
+  && ( \
+     [ -z "$texlive_version"    ] || printf '-t\n%s\n"' "$texlive_version"; \
+     [ -z "$texlive_mirror_url" ] || printf '-m\n%s\n' "$texlive_mirror_url" \
+     ) | xargs /root/install-texlive.sh \
+  && sed -e 's/ *#.*$//' -e '/^ *$/d' /root/packages.txt | \
+     xargs tlmgr install \
+  && rm -f /root/texlive.profile \
+           /root/install-texlive.sh \
+           /root/packages.txt \
+  && TERM=dumb luaotfload-tool --update \
+  && chmod -R o+w /opt/texlive/texdir/texmf-var
 
 WORKDIR /data
 
@@ -181,18 +189,22 @@ RUN apk --no-cache add \
         font-carlito \
         git \
         jq \
-        py-pip \
         shadow \
         sudo
 
 COPY common/extra/packages.txt /root/extra_packages.txt
+COPY common/extra/requirements.txt /root/extra_requirements.txt
 
-RUN sed -e 's/ *#.*$//' -e '/^ *$/d' /root/extra_packages.txt | xargs tlmgr install && \
-    rm -f /root/extra_packages.txt
+# The option `--break-system-packages` sounds bad but this is not 
+# really a problem here because we are not using Python apk packages
+# anyway.
+RUN  apk --no-cache add py-pip \
+  && pip3 install -r /root/extra_requirements.txt --break-system-packages \
+  && rm -f /root/extra_requirements.txt
 
-RUN python3 -m pip install --break-system-packages --no-cache-dir \
-    pandoc-latex-environment
-
+RUN sed -e 's/ *#.*$//' -e '/^ *$/d' /root/extra_packages.txt | \
+    xargs tlmgr install \
+    && rm -f /root/extra_packages.txt
 ARG TEMPLATES_DIR=/.pandoc/templates
 
 RUN mkdir -p ${TEMPLATES_DIR} && \

@@ -9,12 +9,12 @@ docker run --rm \
        --volume "$(pwd):/data" \
        --entrypoint /usr/local/bin/pandoc \
        --user $(id -u):$(id -g) \
-       ghcr.io/innofactororg/pandoc-extra README.md -o outfile.pdf
+       pandoc/latex README.md -o outfile.epub
 ```
 
 This will convert the file `README.md` in the current working
-directory into `outfile.pdf`. Note that Docker options go *before*
-the image name, here `ghcr.io/innofactororg/pandoc-extra`, while pandoc options come
+directory into `outfile.epub`. Note that Docker options go *before*
+the image name, here `pandoc/latex`, while pandoc options come
 *after* it.
 
 The `--volume` flag maps some local directory (lefthand side of
